@@ -17,6 +17,11 @@ class GenerateDiffFunction(BaseFunction):
     ) -> dict[str, str]:
         """ローカルのGit差分を生成する.
 
+        以下の順序で差分を確認します：
+        1. ワーキングディレクトリの変更（git diff HEAD）
+        2. ステージングエリアの変更（git diff --cached）
+        3. 未追跡ファイル（git ls-files --others --exclude-standard）
+
         Args:
             base_branch (str, optional): 使用されません（互換性のため保持）
             target_branch (Optional[str], optional): 使用されません（互換性のため保持）
@@ -49,7 +54,7 @@ class GenerateDiffFunction(BaseFunction):
                 cmd.append("--")
                 cmd.append(file_path)
 
-            # ワーキングディレクトリの差分を実行
+                # ワーキングディレクトリの差分を実行
             diff_output = subprocess.check_output(
                 cmd,
                 stderr=subprocess.STDOUT,
@@ -70,6 +75,44 @@ class GenerateDiffFunction(BaseFunction):
                 )
                 diff_output = staged_output
 
+            # 追跡されていないファイルも確認
+            if not diff_output:
+                # 未追跡ファイルの一覧を取得
+                untracked_cmd = ["git", "ls-files", "--others", "--exclude-standard"]
+                if file_path:
+                    untracked_cmd.append(file_path)
+
+                untracked_files = subprocess.check_output(
+                    untracked_cmd,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                ).strip()
+
+                if untracked_files:
+                    # 未追跡ファイルの内容を差分形式で表示
+                    untracked_diff = ""
+                    for file in untracked_files.split("\n"):
+                        if file.strip():
+                            try:
+                                # ファイルの内容を読み取り、diff形式で表示
+                                with open(file, "r", encoding="utf-8") as f:
+                                    content = f.read()
+                                untracked_diff += f"diff --git a/{file} b/{file}\n"
+                                untracked_diff += "new file mode 100644\n"
+                                untracked_diff += f"index 0000000..{hash(content) % 1000000:07x}\n"
+                                untracked_diff += "--- /dev/null\n"
+                                untracked_diff += f"+++ b/{file}\n"
+                                for i, line in enumerate(content.split("\n"), 1):
+                                    untracked_diff += f"+{line}\n"
+                                untracked_diff += "\n"
+                            except (UnicodeDecodeError, FileNotFoundError):
+                                # バイナリファイルや読み取れないファイルはスキップ
+                                untracked_diff += f"diff --git a/{file} b/{file}\n"
+                                untracked_diff += "new file mode 100644\n"
+                                untracked_diff += f"Binary file {file} added\n\n"
+
+                    diff_output = untracked_diff
+
             # 結果がない場合
             if not diff_output:
                 return {
@@ -79,9 +122,15 @@ class GenerateDiffFunction(BaseFunction):
                     "base_branch": base_branch,
                     "target_branch": target_branch,
                 }
+            # 差分の種類を判定してメッセージを設定
+            if "new file mode" in diff_output:
+                message = "ローカルの差分を取得しました（未追跡ファイルを含む）"
+            else:
+                message = "ローカルの差分を取得しました"
+
             return {
                 "result": "success",
-                "message": "ローカルの差分を取得しました",
+                "message": message,
                 "diff": diff_output,
                 "base_branch": base_branch,
                 "target_branch": target_branch,
@@ -99,7 +148,7 @@ class GenerateDiffFunction(BaseFunction):
         """ツールを作成する."""
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="Gitリポジトリのローカル差分（diff）を取得します。HEADとワーキングディレクトリ、またはステージングエリアの差分を取得できます。",
+            description="Gitリポジトリのローカル差分（diff）を取得します。ワーキングディレクトリ、ステージングエリア、未追跡ファイルの変更を含めて取得できます。",
             func=cls.execute,
             args_schema=GenerateDiffInput,
         )
