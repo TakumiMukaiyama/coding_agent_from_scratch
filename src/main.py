@@ -24,9 +24,8 @@ def coordinator(
         max_iterations = 3
         auto_create_branch = True
         prompt = """
-        snowflakeのterraformコードを生成し、terraform/snowflake/environments/配下のファイルを編集し、適用してください。
-        terraformコードの生成ルールはagents/src/agent/rules/terraform_coding.mdを参照し、厳守してください。
-        ※ GoogleSearchClient.searchは使わないでください
+        generated_codeディレクトリ配下でファイルの作成、編集を行なってください。
+        コードの生成ルールはsrc/agent/rules/conding_rule.mdを参照し、厳守してください。
         ※ 実行確認は不要です。ファイルの編集を行なってください
         """
         instruction = f"{prompt}\n{instruction}"
