@@ -168,7 +168,9 @@ class AgentCoordinator:
 
                 programmer_output = self.run_programmer(
                     instruction,
-                    reviewer_comment=reviewer_output.summary if reviewer_output else None,
+                    reviewer_comment=reviewer_output.summary
+                    if reviewer_output
+                    else None,
                 )
                 logger.info(f"プログラマー出力: {programmer_output[:100]}...")
 
@@ -178,7 +180,9 @@ class AgentCoordinator:
                 logger.info(f"レビュアー出力: {reviewer_output.summary[:100]}...")
 
                 if reviewer_output.lgtm:
-                    logger.info("レビュー承認 (LGTM) が得られました。サイクルを終了します。")
+                    logger.info(
+                        "レビュー承認 (LGTM) が得られました。サイクルを終了します。"
+                    )
                     break
 
             # 差分の確認と処理
@@ -186,7 +190,9 @@ class AgentCoordinator:
                 base_branch=self.base_branch,
             )
             if not diff:
-                logger.warning("ローカルに差分がありません。プルリクエストを作成できません。")
+                logger.warning(
+                    "ローカルに差分がありません。プルリクエストを作成できません。"
+                )
                 exit(1)
 
             try:

@@ -7,6 +7,7 @@ from langchain_core.prompts import (
 )
 from langchain_core.tools import BaseTool
 
+from src.infrastructure.utils.logger import get_logger
 from src.agent.function.record_lgtm import RecordLgtmFunction
 from src.agent.function.review_code_function import ReviewCodeFunction
 from src.agent.schema.reviewer_input import ReviewerInput
@@ -46,7 +47,9 @@ class ReviewerAgent:
 - ベストプラクティスの遵守
 - バグの可能性
 - 設計上の問題
-適切であればLGTM (Looks Good To Me) を記録してください。""",
+
+重要：レビューの結果、コードに問題がなく承認できる場合は、必ずrecord_lgtm_functionツールを呼び出してLGTM (Looks Good To Me) を記録してください。
+問題がある場合は、具体的な改善点を指摘してください。""",
                 ),
                 MessagesPlaceholder(variable_name="chat_history", optional=True),
                 HumanMessagePromptTemplate.from_template("{input}"),
@@ -60,7 +63,9 @@ class ReviewerAgent:
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
+        return AgentExecutor(
+            agent=agent, tools=self.tools, max_iterations=30, verbose=True
+        )
 
     def run(self, reviewer_input: ReviewerInput) -> ReviewerOutput:
         """コードレビューを実行する.
@@ -78,12 +83,18 @@ class ReviewerAgent:
             コードの品質、セキュリティ、ベストプラクティスの観点から詳細にレビューし、
             問題点や改善点があれば具体的に指摘してください。
             
+            レビュー完了後：
+            - コードに問題がなく承認できる場合：必ずrecord_lgtm_functionツールを呼び出してください
+            - 問題がある場合：具体的な改善点を指摘してください
+            
             差分:
             {reviewer_input.diff}
             
             """
         if reviewer_input.programmer_comment:
-            input_text += f"\n\nプログラマーからのコメント:\n{reviewer_input.programmer_comment}"
+            input_text += (
+                f"\n\nプログラマーからのコメント:\n{reviewer_input.programmer_comment}"
+            )
 
         agent_result = self.agent_executor.invoke({"input": input_text})
         output_text = agent_result["output"]
@@ -94,6 +105,15 @@ class ReviewerAgent:
             summary = str(output_text)
 
         lgtm_flag = RecordLgtmFunction.lgtm()
+
+        # デバッグ用ログ
+
+        logger = get_logger(__name__)
+        logger.info(f"レビュー完了 - LGTM状態: {lgtm_flag}")
+        if lgtm_flag:
+            logger.info("LGTMツールが正常に呼び出されました")
+        else:
+            logger.warning("LGTMツールが呼び出されていません")
 
         return ReviewerOutput(
             summary=summary,

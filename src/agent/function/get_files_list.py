@@ -114,12 +114,17 @@ class GetFilesListFunction(BaseFunction):
             exclude_patterns = GetFilesListFunction.DEFAULT_EXCLUDE_PATTERNS
         else:
             # ユーザー指定の除外パターンにデフォルトを追加
-            exclude_patterns = list(set(exclude_patterns + GetFilesListFunction.DEFAULT_EXCLUDE_PATTERNS))
+            exclude_patterns = list(
+                set(exclude_patterns + GetFilesListFunction.DEFAULT_EXCLUDE_PATTERNS)
+            )
 
         # ルートディレクトリの正規化
         root_path = Path(root_directory).resolve()
         if not root_path.exists():
-            return {"files_list": [], "error": f"指定されたディレクトリが存在しません: {root_directory}"}
+            return {
+                "files_list": [],
+                "error": f"指定されたディレクトリが存在しません: {root_directory}",
+            }
 
         files_set: Set[str] = set()
 
@@ -204,7 +209,10 @@ class GetFilesListFunction(BaseFunction):
         """
         extensions = cls.get_extensions_for_language(language)
         if not extensions:
-            return {"files_list": [], "error": f"サポートされていない言語です: {language}"}
+            return {
+                "files_list": [],
+                "error": f"サポートされていない言語です: {language}",
+            }
 
         # プロンプト設定ファイルから設定ファイルも取得（利用可能な場合）
         if PROMPT_CONFIG_AVAILABLE:
@@ -223,7 +231,11 @@ class GetFilesListFunction(BaseFunction):
             except Exception:
                 pass  # 設定取得に失敗した場合は通常の処理を続行
 
-        return cls.execute(file_extensions=extensions, root_directory=root_directory, max_files=max_files)
+        return cls.execute(
+            file_extensions=extensions,
+            root_directory=root_directory,
+            max_files=max_files,
+        )
 
     @classmethod
     def to_tool(cls: Type["GetFilesListFunction"]) -> StructuredTool:

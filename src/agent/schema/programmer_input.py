@@ -21,8 +21,11 @@ class ProgrammerInput(BaseInput):
         description="プロジェクトタイプ（例: Webアプリケーション, API開発, データ分析, インフラストラクチャ管理等）",
     )
 
-    project_root: Optional[str] = Field(default="src/", description="プロジェクトのルートディレクトリ")
+    project_root: Optional[str] = Field(
+        default="src/", description="プロジェクトのルートディレクトリ"
+    )
 
     language_specific_notes: Optional[str] = Field(
-        default="", description="言語固有の考慮事項やベストプラクティス（自動生成される場合は空文字列）"
+        default="",
+        description="言語固有の考慮事項やベストプラクティス（自動生成される場合は空文字列）",
     )

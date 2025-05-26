@@ -14,15 +14,20 @@ class GetFilesListInput(BaseInput):
     )
 
     include_patterns: Optional[List[str]] = Field(
-        default=None, description="含めるファイルパターンのリスト（例: ['**/*.py', 'src/**/*.js']）"
+        default=None,
+        description="含めるファイルパターンのリスト（例: ['**/*.py', 'src/**/*.js']）",
     )
 
     exclude_patterns: Optional[List[str]] = Field(
-        default=None, description="除外するファイルパターンのリスト（例: ['**/node_modules/**', '**/__pycache__/**']）"
+        default=None,
+        description="除外するファイルパターンのリスト（例: ['**/node_modules/**', '**/__pycache__/**']）",
     )
 
     root_directory: Optional[str] = Field(
-        default=".", description="検索を開始するルートディレクトリ（デフォルト: 現在のディレクトリ）"
+        default=".",
+        description="検索を開始するルートディレクトリ（デフォルト: 現在のディレクトリ）",
     )
 
-    max_files: Optional[int] = Field(default=1000, description="取得するファイル数の上限（デフォルト: 1000）")
+    max_files: Optional[int] = Field(
+        default=1000, description="取得するファイル数の上限（デフォルト: 1000）"
+    )

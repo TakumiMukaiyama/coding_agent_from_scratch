@@ -99,7 +99,9 @@ class GenerateDiffFunction(BaseFunction):
                                     content = f.read()
                                 untracked_diff += f"diff --git a/{file} b/{file}\n"
                                 untracked_diff += "new file mode 100644\n"
-                                untracked_diff += f"index 0000000..{hash(content) % 1000000:07x}\n"
+                                untracked_diff += (
+                                    f"index 0000000..{hash(content) % 1000000:07x}\n"
+                                )
                                 untracked_diff += "--- /dev/null\n"
                                 untracked_diff += f"+++ b/{file}\n"
                                 for i, line in enumerate(content.split("\n"), 1):

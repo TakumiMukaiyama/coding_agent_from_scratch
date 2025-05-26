@@ -32,7 +32,14 @@ class RecordLgtmFunction(BaseFunction):
     @staticmethod
     def execute(**kwargs) -> Dict[str, str]:
         """LGTM状態をTrueに設定する"""
+        from src.infrastructure.utils.logger import get_logger
+
+        logger = get_logger(__name__)
+
         RecordLgtmFunction._thread_local.lgtm_status = True
+        logger.info(
+            "RecordLgtmFunction.execute() が呼び出されました - LGTM状態をTrueに設定"
+        )
         return {"result": "LGTMを記録しました"}
 
     @classmethod

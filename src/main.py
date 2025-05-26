@@ -29,7 +29,9 @@ def coordinator(
         """
         instruction = f"{prompt}\n{instruction}"
 
-        result = agent.development_cycle(instruction, max_iterations, auto_create_branch)
+        result = agent.development_cycle(
+            instruction, max_iterations, auto_create_branch
+        )
 
         logger.info("コードの生成が完了しました")
 
