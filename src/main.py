@@ -33,24 +33,6 @@ def coordinator(
 
         logger.info("コードの生成が完了しました")
 
-        # ブランチの変更を確認
-        branch_name = result.get("branch_name", "")
-        if not branch_name:
-            logger.warning("作業ブランチ名が設定されていません。")
-            sys.exit(1)
-
-        # PR情報の取得
-        pr_number = result.get("pr_number")
-        pr_url = result.get("pr_url")
-
-        if not pr_number:
-            logger.error("プルリクエストの作成に失敗しました")
-            sys.exit(1)
-
-        logger.info(f"プルリクエストが作成されました: PR #{pr_number}")
-        if pr_url:
-            logger.info(f"PR URL: {pr_url}")
-
     except Exception:
         logger.exception("エラーが発生しました")
         sys.exit(1)

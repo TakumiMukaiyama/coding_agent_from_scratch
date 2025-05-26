@@ -187,7 +187,8 @@ class AgentCoordinator:
                 base_branch=self.base_branch,
             )
             if not diff:
-                raise ValueError("差分がありません。プルリクエストを作成できません。")
+                logger.warning("差分がありません。プルリクエストを作成できません。")
+                exit(1)
 
             try:
                 diff_output = subprocess.check_output(
@@ -206,19 +207,10 @@ class AgentCoordinator:
                 logger.error(f"git diffコマンドの実行に失敗しました: {e}")
                 raise
 
-            # PRの作成
-            pr_params = GeneratePullRequestParamsFunction.execute(
-                instruction=instruction,
-                programmer_output=programmer_output,
-                diff=diff,
-            )
-
             return {
                 "programmer_output": programmer_output,
                 "reviewer_output": reviewer_output.summary if reviewer_output else None,
                 "branch_name": self.working_branch,
-                "pr_title": pr_params["pr_title"],
-                "pr_description": pr_params["pr_description"],
             }
 
         except Exception as e:
