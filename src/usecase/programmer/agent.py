@@ -1,3 +1,12 @@
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain_core.messages import SystemMessage
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+)
+from langchain_core.tools import BaseTool
+
 from src.agent.function.create_branch import CreateBranchFunction
 from src.agent.function.exec_rspec_test import ExecRspecTestFunction
 from src.agent.function.generate_diff import GenerateDiffFunction
@@ -18,26 +27,20 @@ from src.application.dependency.chaindependency import ChainDependency
 from src.infrastructure.config.prompt import (
     AGENT_SYSTEM_MESSAGE,
     PROGRAMMER_PROMPT_TEMPLATE,
+    get_language_config,
 )
-from langchain.agents import AgentExecutor, create_openai_tools_agent
-from langchain_core.messages import SystemMessage
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    MessagesPlaceholder,
-)
-from langchain_core.tools import BaseTool
 
 
 class ProgrammerAgent:
-    def __init__(self):
+    def __init__(self, default_project_root: str = "src/"):
         self.llm_client = AzureOpenAIClient()
         self.chat_llm = self.llm_client.initialize_chat()
+        self.default_project_root = default_project_root
 
         self.chain = self._initialize_chain()
         self.tools = self._initialize_tools()
 
-        self.agent_executor: AgentExecutor = self._initialize_executor()
+        self.agent_executor: AgentExecutor = self._initialize_executor(default_project_root)
 
     def _initialize_chain(self) -> PydanticChain:
         return PydanticChain(
@@ -63,10 +66,13 @@ class ProgrammerAgent:
             GenerateDiffFunction.to_tool(),
         ]
 
-    def _initialize_executor(self) -> AgentExecutor:
+    def _initialize_executor(self, project_root: str) -> AgentExecutor:
+        # プロジェクトルートに応じてシステムメッセージを生成
+        system_message = AGENT_SYSTEM_MESSAGE.format(project_root=project_root)
+
         prompt = ChatPromptTemplate.from_messages(
             [
-                SystemMessage(content=AGENT_SYSTEM_MESSAGE),
+                SystemMessage(content=system_message),
                 MessagesPlaceholder(variable_name="chat_history", optional=True),
                 HumanMessagePromptTemplate.from_template("{input}"),
                 MessagesPlaceholder(variable_name="agent_scratchpad"),
@@ -78,9 +84,45 @@ class ProgrammerAgent:
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(
-            agent=agent, tools=self.tools, max_iterations=30, verbose=True
-        )
+        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
+
+    def _prepare_input(self, programmer_input: ProgrammerInput) -> ProgrammerInput:
+        """
+        入力を前処理して、言語固有の注意事項を自動生成する
+
+        Args:
+            programmer_input: 元の入力
+
+        Returns:
+            前処理済みの入力
+        """
+        # 言語固有の注意事項が空の場合、自動生成する
+        if not programmer_input.language_specific_notes:
+            language_config = get_language_config(programmer_input.language)
+            programmer_input.language_specific_notes = language_config.get("notes", "")
+
+        return programmer_input
+
+    def execute(self, programmer_input: ProgrammerInput):
+        """
+        プログラマーエージェントを実行する
+
+        Args:
+            programmer_input: プログラマーへの入力
+
+        Returns:
+            実行結果
+        """
+        # 入力を前処理
+        processed_input = self._prepare_input(programmer_input)
+
+        # プロジェクトルートが変更された場合、エージェントを再初期化
+        if processed_input.project_root != self.default_project_root:
+            self.agent_executor = self._initialize_executor(processed_input.project_root)
+            self.default_project_root = processed_input.project_root
+
+        # エージェントを実行
+        return self.agent_executor.invoke({"input": processed_input.instruction})
 
     def run(self, instruction: str, reviewer_comment: str | None = None) -> str:
         """プログラマーエージェントを実行する.
@@ -93,9 +135,7 @@ class ProgrammerAgent:
             str: プログラマーの出力
         """
         if reviewer_comment:
-            input_text = (
-                f"{instruction}\n\n[Reviewerからのフィードバック]:\n{reviewer_comment}"
-            )
+            input_text = f"{instruction}\n\n[Reviewerからのフィードバック]:\n{reviewer_comment}"
         else:
             input_text = instruction
 
@@ -118,9 +158,7 @@ class ProgrammerAgent:
             str: 生成されたdiff
         """
         diff_function = GenerateDiffFunction()
-        result = diff_function.execute(
-            base_branch=base_branch, target_branch=target_branch, file_path=file_path
-        )
+        result = diff_function.execute(base_branch=base_branch, target_branch=target_branch, file_path=file_path)
 
         if result["result"] == "error":
             return f"diff取得エラー: {result['message']}"
