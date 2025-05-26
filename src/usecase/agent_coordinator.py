@@ -6,7 +6,7 @@ from src.agent.schema.reviewer_input import ReviewerInput
 from src.agent.schema.reviewer_output import ReviewerOutput
 from src.application.client.github_client import GitHubClient
 from src.application.client.llm.azure_openai_client import AzureOpenAIClient
-from src.application.client.local_git_client import GitCommitPushPR
+from src.application.client.local_git_client import LocalGitClient  
 from src.infrastructure.utils.logger import get_logger
 from src.usecase.programmer.agent import ProgrammerAgent
 from src.usecase.reviewer.agent import ReviewerAgent
@@ -29,12 +29,10 @@ class AgentCoordinator:
         self.llm_client = AzureOpenAIClient()
         self.chat_llm = self.llm_client.initialize_chat()
         self.github_client = GitHubClient(os.environ["GITHUB_TOKEN"])
-        self.snowflake_tf_dir_path = "terraform/snowflake/environments/"
-        # GitCommitPushPRクライアントを初期化
-        self.repo_full_name = "Finatext/ai-contest-hanare-banare"
         self.repo_path = os.getcwd()  # カレントディレクトリをリポジトリパスとして使用
-        self.git_client = GitCommitPushPR(
-            self.repo_path, os.environ["GITHUB_TOKEN"], self.repo_full_name
+        self.repo_full_name = "xxxxxxx"
+        self.git_client = LocalGitClient(
+            self.repo_path, os.environ["GITHUB_TOKEN"], self.repo_full_name, os.environ["GITHUB_USERNAME"]
         )
 
     def generate_branch_name(self, instruction: str) -> str:
