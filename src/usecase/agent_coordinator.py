@@ -169,7 +169,7 @@ class AgentCoordinator:
                 logger.info(f"プログラマー出力: {programmer_output[:100]}...")
 
                 reviewer_output = self.run_reviewer(
-                    programmer_comment=f"開発サイクル {i + 1} の実装が完了しました。差分がない場合LGTMしないでください。"
+                    programmer_comment=f"開発サイクル {i + 1} の実装が完了しました。レビューをお願いします。"
                 )
                 logger.info(f"レビュアー出力: {reviewer_output.summary[:100]}...")
 
