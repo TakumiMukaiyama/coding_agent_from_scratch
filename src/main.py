@@ -25,7 +25,7 @@ def coordinator(
         auto_create_branch = True
         prompt = """
         generated_codeディレクトリ配下でファイルの作成、編集を行なってください。
-        コードの生成ルールはsrc/agent/rules/conding_rule.mdを参照し、厳守してください。
+        コードの生成ルールは src/agent/rules/coding_rule.md を参照し、厳守してください。
         ※ 実行確認は不要です。ファイルの編集を行なってください
         """
         instruction = f"{prompt}\n{instruction}"
