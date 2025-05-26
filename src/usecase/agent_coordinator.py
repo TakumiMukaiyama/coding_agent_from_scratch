@@ -4,7 +4,6 @@ import subprocess
 from langchain.schema import HumanMessage
 from langchain_core.prompts import PromptTemplate
 
-from src.agent.function.generate_pr_params import GeneratePullRequestParamsFunction
 from src.agent.schema.reviewer_input import ReviewerInput
 from src.agent.schema.reviewer_output import ReviewerOutput
 from src.application.client.llm.azure_openai_client import AzureOpenAIClient
@@ -111,8 +110,8 @@ class AgentCoordinator:
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-        # 現在の差分を取得（ベースブランチとの比較）
-        logger.info(f"差分を取得中: base_branch={self.base_branch}, working_branch={self.working_branch}")
+        # 現在のローカル差分を取得（HEADとワーキングディレクトリの比較）
+        logger.info(f"ローカル差分を取得中: working_branch={self.working_branch}")
         diff = self.programmer_agent.get_diff(
             base_branch=self.base_branch,
         )
@@ -187,7 +186,7 @@ class AgentCoordinator:
                 base_branch=self.base_branch,
             )
             if not diff:
-                logger.warning("差分がありません。プルリクエストを作成できません。")
+                logger.warning("ローカルに差分がありません。プルリクエストを作成できません。")
                 exit(1)
 
             try:

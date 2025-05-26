@@ -15,11 +15,11 @@ class GenerateDiffFunction(BaseFunction):
         target_branch: str | None = None,
         file_path: str | None = None,
     ) -> dict[str, str]:
-        """Gitのdiffを生成する.
+        """ローカルのGit差分を生成する.
 
         Args:
-            base_branch (str, optional): ベースとなるブランチ名. デフォルトは "main"
-            target_branch (Optional[str], optional): 比較対象のブランチ名. デフォルトはNone（現在のブランチ）
+            base_branch (str, optional): 使用されません（互換性のため保持）
+            target_branch (Optional[str], optional): 使用されません（互換性のため保持）
             file_path (Optional[str], optional): 特定のファイルパス. デフォルトはNone（全ファイル）
 
         Returns:
@@ -38,41 +38,50 @@ class GenerateDiffFunction(BaseFunction):
                     text=True,
                 ).strip()
 
-            # diffコマンド構築
+            # diffコマンド構築 - ローカルの変更を取得
             cmd = ["git", "diff"]
 
-            # ベースブランチとターゲットブランチが同じ場合は、ワーキングディレクトリとの差分を取得
-            if base_branch == target_branch:
-                # ワーキングディレクトリの変更を取得
-                pass  # git diffのみ
-            else:
-                # ブランチ間の差分を取得
-                cmd.append(f"{base_branch}...{target_branch}")
+            # HEADとワーキングディレクトリの差分を取得（ローカルの変更）
+            cmd.append("HEAD")
 
             # 特定のファイルのdiffを取得する場合
             if file_path:
                 cmd.append("--")
                 cmd.append(file_path)
 
-            # diffを実行
+            # ワーキングディレクトリの差分を実行
             diff_output = subprocess.check_output(
                 cmd,
                 stderr=subprocess.STDOUT,
                 text=True,
             )
 
+            # ワーキングディレクトリに変更がない場合、ステージングエリアの変更も確認
+            if not diff_output:
+                # ステージングエリア（インデックス）とHEADの差分を取得
+                cmd_staged = ["git", "diff", "--cached"]
+                if file_path:
+                    cmd_staged.extend(["--", file_path])
+
+                staged_output = subprocess.check_output(
+                    cmd_staged,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                )
+                diff_output = staged_output
+
             # 結果がない場合
             if not diff_output:
                 return {
                     "result": "success",
-                    "message": "差分はありません",
+                    "message": "ローカルに差分はありません",
                     "diff": "",
                     "base_branch": base_branch,
                     "target_branch": target_branch,
                 }
             return {
                 "result": "success",
-                "message": f"{base_branch}と{target_branch}の差分を取得しました",
+                "message": "ローカルの差分を取得しました",
                 "diff": diff_output,
                 "base_branch": base_branch,
                 "target_branch": target_branch,
@@ -90,7 +99,7 @@ class GenerateDiffFunction(BaseFunction):
         """ツールを作成する."""
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="Gitリポジトリの差分（diff）を取得します。ブランチ間やファイル単位での差分を取得できます。",
+            description="Gitリポジトリのローカル差分（diff）を取得します。HEADとワーキングディレクトリ、またはステージングエリアの差分を取得できます。",
             func=cls.execute,
             args_schema=GenerateDiffInput,
         )
