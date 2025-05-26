@@ -1,4 +1,3 @@
-import glob
 import os
 import subprocess
 
@@ -84,7 +83,7 @@ class AgentCoordinator:
         Returns:
             str: 作成・切替結果のメッセージ
         """
-        from agents.src.agent.function.create_branch import CreateBranchFunction
+        from src.agent.function.create_branch import CreateBranchFunction
 
         branch_function = CreateBranchFunction()
         result = branch_function.execute(branch_name=branch_name)
@@ -214,7 +213,7 @@ class AgentCoordinator:
                 raise
 
             # ブランチの作成とファイルの更新
-            new_branch = self.github_client.create_branch(
+            _ = self.github_client.create_branch(
                 repo_full_name=self.repo_full_name,
                 new_branch_name=self.working_branch,
                 base_branch=self.base_branch,
