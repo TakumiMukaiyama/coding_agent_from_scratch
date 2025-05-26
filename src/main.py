@@ -19,7 +19,6 @@ def coordinator(
 ):
     """Programmerエージェントを実行します."""
     try:
-        # terraform code生成
         agent = AgentCoordinator()
         max_iterations = 3
         auto_create_branch = True
