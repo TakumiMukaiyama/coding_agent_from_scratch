@@ -29,6 +29,73 @@ class AgentCoordinator:
         self.repo_path = os.getcwd()  # カレントディレクトリをリポジトリパスとして使用
         self.repo_full_name = "coding_agent_from_scratch"
 
+    def _detect_language_from_diff(self, diff: str) -> tuple[str | None, str | None]:
+        """差分から主要なプログラミング言語とプロジェクトタイプを検出する.
+
+        Args:
+            diff: Git差分
+
+        Returns:
+            tuple: (言語, プロジェクトタイプ)
+        """
+        if not diff:
+            return None, None
+
+        # ファイル拡張子から言語を推定
+        language_map = {
+            ".py": "python",
+            ".js": "javascript",
+            ".ts": "typescript",
+            ".tsx": "typescript",
+            ".jsx": "javascript",
+            ".java": "java",
+            ".go": "go",
+            ".rs": "rust",
+            ".tf": "terraform",
+            ".tfvars": "terraform",
+        }
+
+        project_type_map = {
+            "python": "Pythonアプリケーション",
+            "javascript": "JavaScriptアプリケーション",
+            "typescript": "TypeScriptアプリケーション",
+            "java": "Javaアプリケーション",
+            "go": "Goアプリケーション",
+            "rust": "Rustアプリケーション",
+            "terraform": "インフラストラクチャ管理",
+        }
+
+        # 差分からファイルパスを抽出
+        lines = diff.split("\n")
+        file_extensions = set()
+
+        for line in lines:
+            if line.startswith("+++") or line.startswith("---"):
+                # ファイルパスから拡張子を抽出
+                if " b/" in line:
+                    file_path = line.split(" b/")[-1]
+                elif " a/" in line:
+                    file_path = line.split(" a/")[-1]
+                else:
+                    continue
+
+                if "." in file_path:
+                    ext = "." + file_path.split(".")[-1]
+                    if ext in language_map:
+                        file_extensions.add(ext)
+
+        # 最も多い拡張子の言語を選択
+        if file_extensions:
+            # 優先順位: terraform > typescript > python > その他
+            priority_order = [".tf", ".tfvars", ".ts", ".tsx", ".py", ".js", ".jsx", ".java", ".go", ".rs"]
+            for ext in priority_order:
+                if ext in file_extensions:
+                    language = language_map[ext]
+                    project_type = project_type_map.get(language)
+                    return language, project_type
+
+        return None, None
+
     def generate_branch_name(self, instruction: str) -> str:
         """指示内容からGitブランチ名を生成します.
 
@@ -117,10 +184,16 @@ class AgentCoordinator:
         )
         logger.info(f"diff: {diff}")
 
+        # 差分から言語とプロジェクトタイプを検出
+        language, project_type = self._detect_language_from_diff(diff)
+        logger.info(f"検出された言語: {language}, プロジェクトタイプ: {project_type}")
+
         # レビュアーエージェントを実行
         reviewer_input = ReviewerInput(
             diff=diff,
             programmer_comment=programmer_comment,
+            language=language,
+            project_type=project_type,
         )
 
         return self.reviewer_agent.run(reviewer_input)
