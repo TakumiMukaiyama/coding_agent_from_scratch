@@ -1,8 +1,9 @@
 import subprocess
 
+from langchain_core.tools import StructuredTool
+
 from src.agent.schema.generate_diff_input import GenerateDiffInput
 from src.application.function.base import BaseFunction
-from langchain_core.tools import StructuredTool
 
 
 class GenerateDiffFunction(BaseFunction):
@@ -25,6 +26,10 @@ class GenerateDiffFunction(BaseFunction):
             Dict[str, str]: 実行結果
         """
         try:
+            # デフォルト値の設定
+            if base_branch is None:
+                base_branch = "main"
+
             # 現在のブランチを取得
             if target_branch is None:
                 target_branch = subprocess.check_output(
@@ -36,7 +41,12 @@ class GenerateDiffFunction(BaseFunction):
             # diffコマンド構築
             cmd = ["git", "diff"]
 
-            if base_branch and target_branch:
+            # ベースブランチとターゲットブランチが同じ場合は、ワーキングディレクトリとの差分を取得
+            if base_branch == target_branch:
+                # ワーキングディレクトリの変更を取得
+                pass  # git diffのみ
+            else:
+                # ブランチ間の差分を取得
                 cmd.append(f"{base_branch}...{target_branch}")
 
             # 特定のファイルのdiffを取得する場合

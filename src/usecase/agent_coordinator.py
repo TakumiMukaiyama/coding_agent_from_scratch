@@ -111,11 +111,16 @@ class AgentCoordinator:
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-        # 現在の差分を取得
+        # 現在の差分を取得（ベースブランチとの比較）
+        logger.info(f"差分を取得中: base_branch={self.base_branch}, working_branch={self.working_branch}")
         diff = self.programmer_agent.get_diff(
-            file_path=self.repo_path,
+            base_branch=self.base_branch,
         )
-        logger.info(f"diff: {diff}")
+        logger.info(f"取得した差分の長さ: {len(diff)} 文字")
+        if diff:
+            logger.info(f"差分の先頭100文字: {diff[:100]}...")
+        else:
+            logger.warning("差分が空です")
 
         # レビュアーエージェントを実行
         reviewer_input = ReviewerInput(
@@ -178,7 +183,9 @@ class AgentCoordinator:
                     break
 
             # 差分の確認と処理
-            diff = self.programmer_agent.get_diff(file_path=self.repo_path)
+            diff = self.programmer_agent.get_diff(
+                base_branch=self.base_branch,
+            )
             if not diff:
                 raise ValueError("差分がありません。プルリクエストを作成できません。")
 
