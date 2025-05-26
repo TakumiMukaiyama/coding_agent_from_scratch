@@ -32,7 +32,9 @@ class GitHubClient:
         if access_token is None:
             access_token = os.environ.get("GITHUB_TOKEN")
             if not access_token:
-                print("環境変数GITHUB_TOKENが設定されていません。GitHubの操作ができません。")
+                print(
+                    "環境変数GITHUB_TOKENが設定されていません。GitHubの操作ができません。"
+                )
                 sys.exit(1)
 
         self.github = Github(access_token)
@@ -50,13 +52,17 @@ class GitHubClient:
         try:
             return self.github.get_repo(repo_full_name)
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"リポジトリ '{repo_full_name}' の取得に失敗しました: {error_message}",
             )
 
-    def get_file_content(self, repo_full_name: str, file_path: str, ref: str | None = None) -> str:
+    def get_file_content(
+        self, repo_full_name: str, file_path: str, ref: str | None = None
+    ) -> str:
         """リポジトリ内の指定されたファイルの内容を取得.
 
         Args:
@@ -73,14 +79,21 @@ class GitHubClient:
             content_file = repo.get_contents(file_path, ref=ref)
 
             if isinstance(content_file, list):
-                raise ValueError(f"'{file_path}' はディレクトリです。ファイルパスを指定してください。")
+                raise ValueError(
+                    f"'{file_path}' はディレクトリです。ファイルパスを指定してください。"
+                )
 
             # ファイル内容をデコード
             content = base64.b64decode(content_file.content).decode("utf-8")
             return content
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"ファイル '{file_path}' の取得に失敗しました: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status,
+                f"ファイル '{file_path}' の取得に失敗しました: {error_message}",
+            )
 
     def create_file(
         self,
@@ -115,8 +128,13 @@ class GitHubClient:
             )
             return result
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"ファイル '{file_path}' の作成に失敗しました: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status,
+                f"ファイル '{file_path}' の作成に失敗しました: {error_message}",
+            )
 
     def update_file(
         self,
@@ -153,10 +171,17 @@ class GitHubClient:
             )
             return result
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"ファイル '{file_path}' の更新に失敗しました: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status,
+                f"ファイル '{file_path}' の更新に失敗しました: {error_message}",
+            )
 
-    def get_file_sha(self, repo_full_name: str, file_path: str, ref: str | None = None) -> str:
+    def get_file_sha(
+        self, repo_full_name: str, file_path: str, ref: str | None = None
+    ) -> str:
         """ファイルのSHA値を取得.
 
         ファイル更新時に必要です.
@@ -177,17 +202,23 @@ class GitHubClient:
             content_file = repo.get_contents(file_path, ref=ref)
 
             if isinstance(content_file, list):
-                raise ValueError(f"'{file_path}' はディレクトリです。ファイルパスを指定してください。")
+                raise ValueError(
+                    f"'{file_path}' はディレクトリです。ファイルパスを指定してください。"
+                )
 
             return content_file.sha
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"ファイル '{file_path}' のSHA取得に失敗しました: {error_message}",
             )
 
-    def create_branch(self, repo_full_name: str, new_branch_name: str, base_branch: str | None = None) -> Branch:
+    def create_branch(
+        self, repo_full_name: str, new_branch_name: str, base_branch: str | None = None
+    ) -> Branch:
         """既存のブランチを基にして新しいブランチを作成.
 
         Args:
@@ -218,7 +249,9 @@ class GitHubClient:
             # 作成したブランチを返す
             return repo.get_branch(new_branch_name)
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"ブランチ '{new_branch_name}' の作成に失敗しました: {error_message}",
@@ -241,8 +274,12 @@ class GitHubClient:
             branches = list(repo.get_branches())
             return [branch.name for branch in branches]
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"ブランチの一覧取得に失敗しました: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"ブランチの一覧取得に失敗しました: {error_message}"
+            )
 
     def create_pull_request(
         self,
@@ -280,10 +317,16 @@ class GitHubClient:
             )
             return pr
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"プルリクエストの作成に失敗しました: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"プルリクエストの作成に失敗しました: {error_message}"
+            )
 
-    def list_issues(self, repo_full_name: str, state: str = "open", labels: list[str] | None = None) -> list[Issue]:
+    def list_issues(
+        self, repo_full_name: str, state: str = "open", labels: list[str] | None = None
+    ) -> list[Issue]:
         """リポジトリのイシュー一覧を取得.
 
         Args:
@@ -302,8 +345,12 @@ class GitHubClient:
             issues = list(repo.get_issues(state=state, labels=labels))
             return issues
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"イシューの一覧取得に失敗しました: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"イシューの一覧取得に失敗しました: {error_message}"
+            )
 
     def create_issue(
         self,
@@ -330,11 +377,17 @@ class GitHubClient:
         """
         try:
             repo = self.get_repository(repo_full_name)
-            issue = repo.create_issue(title=title, body=body, labels=labels, assignees=assignees)
+            issue = repo.create_issue(
+                title=title, body=body, labels=labels, assignees=assignees
+            )
             return issue
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"イシューの作成に失敗しました: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"イシューの作成に失敗しました: {error_message}"
+            )
 
     def get_repo_contents(
         self,
@@ -365,7 +418,9 @@ class GitHubClient:
 
             return contents
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"パス '{path}' のコンテンツ取得に失敗しました: {error_message}",
@@ -420,8 +475,12 @@ class GitHubClient:
                 "url": pr.html_url,
             }
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"PR '{pr_number}' の情報取得に失敗しました: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"PR '{pr_number}' の情報取得に失敗しました: {error_message}"
+            )
 
     def commit_untracked_files(
         self,
@@ -456,7 +515,9 @@ class GitHubClient:
                 repo.get_git_ref(f"heads/{working_branch}")
             except GithubException as e:
                 if e.status == 404:
-                    raise GithubException(e.status, f"ブランチ '{working_branch}' が存在しません")
+                    raise GithubException(
+                        e.status, f"ブランチ '{working_branch}' が存在しません"
+                    )
 
             # GitHubのCreateCommitメソッドで必要な情報を構築
             git_ref = repo.get_git_ref(f"heads/{working_branch}")
@@ -484,7 +545,9 @@ class GitHubClient:
                         repo_relative_path = os.path.relpath(file_path, repo_root)
                         logger.info(f"リポジトリ相対パス: {repo_relative_path}")
                     except ValueError:
-                        logger.warning(f"警告: ファイルパスをリポジトリ相対パスに変換できません: {file_path}")
+                        logger.warning(
+                            f"警告: ファイルパスをリポジトリ相対パスに変換できません: {file_path}"
+                        )
                         continue
                 else:
                     repo_relative_path = file_path
@@ -493,7 +556,9 @@ class GitHubClient:
                     content = f.read()
 
                 # GitHubにBlobを作成
-                blob = repo.create_git_blob(base64.b64encode(content).decode("utf-8"), "base64")
+                blob = repo.create_git_blob(
+                    base64.b64encode(content).decode("utf-8"), "base64"
+                )
 
                 # ツリー要素を作成
                 element = InputGitTreeElement(
@@ -516,7 +581,9 @@ class GitHubClient:
             parent_commit = repo.get_git_commit(parent)
 
             # 新しいコミットを作成
-            new_commit = repo.create_git_commit(commit_message, new_tree, [parent_commit])
+            new_commit = repo.create_git_commit(
+                commit_message, new_tree, [parent_commit]
+            )
 
             # ブランチの参照を更新
             repo.get_git_ref(f"heads/{branch}").edit(new_commit.sha)
@@ -531,7 +598,13 @@ class GitHubClient:
 
             return result
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"未コミットファイルのコミットに失敗しました: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"未コミットファイルのコミットに失敗しました: {error_message}"
+            )
         except Exception as e:
-            raise Exception(f"未コミットファイルのコミット中にエラーが発生しました: {str(e)}")
+            raise Exception(
+                f"未コミットファイルのコミット中にエラーが発生しました: {str(e)}"
+            )

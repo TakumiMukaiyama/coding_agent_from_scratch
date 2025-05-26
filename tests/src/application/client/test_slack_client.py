@@ -24,16 +24,12 @@ class TestSlackClient(unittest.TestCase):
         各テスト前の準備
         """
         # SlackClientのインスタンス化をパッチ
-        self.token_patcher = patch(
-            "src.application.client.slack_client.slack_setting"
-        )
+        self.token_patcher = patch("src.application.client.slack_client.slack_setting")
         self.mock_slack_setting = self.token_patcher.start()
         self.mock_slack_setting.SLACK_BOT_USER_OAUTH_TOKEN = "mock-token"
 
         # WebClientをモック化
-        self.client_patcher = patch(
-            "src.application.client.slack_client.WebClient"
-        )
+        self.client_patcher = patch("src.application.client.slack_client.WebClient")
         self.mock_web_client = self.client_patcher.start()
         self.mock_client_instance = MagicMock()
         self.mock_web_client.return_value = self.mock_client_instance

@@ -17,7 +17,9 @@ class GoogleSearchFunction(BaseFunction):
 
     @staticmethod
     def execute(search_word: str) -> List[Dict[str, str]]:
-        search_results = GoogleSearchFunction.search_client().search(search_word, gl="jp")
+        search_results = GoogleSearchFunction.search_client().search(
+            search_word, gl="jp"
+        )
         return [
             {
                 "title": item["title"],

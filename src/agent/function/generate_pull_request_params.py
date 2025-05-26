@@ -2,7 +2,9 @@ from typing import Dict, Type
 from langchain_core.tools import StructuredTool
 
 from src.application.function.base import BaseFunction
-from src.agent.schema.generate_pull_request_params_input import GeneratePullRequestParamsInput
+from src.agent.schema.generate_pull_request_params_input import (
+    GeneratePullRequestParamsInput,
+)
 
 
 class GeneratePullRequestParamsFunction(BaseFunction):

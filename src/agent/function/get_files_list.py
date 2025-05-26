@@ -10,7 +10,9 @@ from src.application.function.base import BaseFunction
 class GetFilesListFunction(BaseFunction):
     @staticmethod
     def execute() -> Dict[str, List[str]]:
-        files_list = glob.glob("**/*.md", recursive=True) + glob.glob("**/*.tf", recursive=True)
+        files_list = glob.glob("**/*.md", recursive=True) + glob.glob(
+            "**/*.tf", recursive=True
+        )
         return {"files_list": files_list}
 
     @classmethod

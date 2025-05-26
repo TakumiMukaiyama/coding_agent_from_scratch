@@ -9,8 +9,6 @@ from src.infrastructure.config.aws_setting import aws_settings
 from src.infrastructure.config.slack_setting import slack_settings
 from src.infrastructure.utils.logger import get_logger
 from src.usecase.agent_coordinator import AgentCoordinator
-from src.usecase.reporter.agent import ReporterAgent
-from src.usecase.validator.agent import ValidatorAgent
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,26 +16,6 @@ load_dotenv()
 logger = get_logger(__name__)
 
 app = typer.Typer(help="エージェント実行CLI")
-
-
-@app.command()
-def validator(
-    instruction: str = typer.Argument(..., help="バリデーションしたい構成に関する指示内容"),
-    reviewer_comment: str | None = typer.Option(
-        None,
-        "--reviewer-comment",
-        "-r",
-        help="レビュアーからのフィードバック",
-    ),
-):
-    """Validatorエージェントを実行します."""
-    try:
-        agent = ValidatorAgent()
-        result = agent.run(instruction, reviewer_comment)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-    except Exception as e:
-        print(f"エラーが発生しました: {str(e)}", file=sys.stderr)
-        sys.exit(1)
 
 
 @app.command()
@@ -75,19 +53,31 @@ def coordinator(
         ※ 実行確認は不要です。ファイルの編集を行なってください
         """
         instruction = f"{prompt}\n{instruction}"
-        slack_client.send_thread_message(channel_id, thread_ts, "コードの生成を開始します :loading:")
-        result = agent.development_cycle(instruction, max_iterations, auto_create_branch)
-        slack_client.send_thread_message(channel_id, thread_ts, "コードの生成が完了したよ〜〜👏")
+        slack_client.send_thread_message(
+            channel_id, thread_ts, "コードの生成を開始します :loading:"
+        )
+        result = agent.development_cycle(
+            instruction, max_iterations, auto_create_branch
+        )
+        slack_client.send_thread_message(
+            channel_id, thread_ts, "コードの生成が完了したよ〜〜👏"
+        )
 
     except Exception:
         logger.exception()
-        slack_client.send_thread_message(channel_id, thread_ts, "エラーが発生したブラ〜〜😭")
+        slack_client.send_thread_message(
+            channel_id, thread_ts, "エラーが発生したブラ〜〜😭"
+        )
         sys.exit(1)
 
     # ブランチの変更を確認
     branch_name = result.get("branch_name", "")
     if not branch_name:
-        slack_client.send_thread_message(channel_id, thread_ts, "作業ブランチ名が設定されていません。プルリクエストを作成できません。")
+        slack_client.send_thread_message(
+            channel_id,
+            thread_ts,
+            "作業ブランチ名が設定されていません。プルリクエストを作成できません。",
+        )
         sys.exit(1)
 
     # PR情報の取得
@@ -95,7 +85,9 @@ def coordinator(
     pr_url = result.get("pr_url")
 
     if not pr_number:
-        slack_client.send_thread_message(channel_id, thread_ts, "プルリクエストの作成に失敗したブラ〜〜😭")
+        slack_client.send_thread_message(
+            channel_id, thread_ts, "プルリクエストの作成に失敗したブラ〜〜😭"
+        )
         sys.exit(1)
 
     # プルリクエスト情報をDynamoDBに保存
@@ -130,25 +122,19 @@ def coordinator(
                 logger.info(f"DynamoDBにPR ID {pr_number} を保存しました")
             except Exception:
                 logger.exception()
-                slack_client.send_thread_message(channel_id, thread_ts, "DynamoDBの更新に失敗したブラ〜〜😭")
+                slack_client.send_thread_message(
+                    channel_id, thread_ts, "DynamoDBの更新に失敗したブラ〜〜😭"
+                )
         else:
             print("SESSION_IDが設定されていないため、DynamoDBの更新をスキップします")
-        slack_client.send_thread_message(channel_id, thread_ts, "PRの作成が完了したよ〜〜👏")
+        slack_client.send_thread_message(
+            channel_id, thread_ts, "PRの作成が完了したよ〜〜👏"
+        )
     except Exception:
         if session_id and channel_id and thread_ts:
-            slack_client.send_thread_message(channel_id, thread_ts, "エラーが発生したブラ〜〜😭")
-        sys.exit(1)
-
-
-@app.command()
-def reporter():
-    """Reporterエージェントを実行します。"""
-    try:
-        agent = ReporterAgent()
-        result = agent.run()
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-    except Exception as e:
-        print(f"エラーが発生しました: {str(e)}", file=sys.stderr)
+            slack_client.send_thread_message(
+                channel_id, thread_ts, "エラーが発生したブラ〜〜😭"
+            )
         sys.exit(1)
 
 

@@ -1,7 +1,9 @@
 from src.agent.function.create_branch import CreateBranchFunction
 from src.agent.function.exec_rspec_test import ExecRspecTestFunction
 from src.agent.function.generate_diff import GenerateDiffFunction
-from src.agent.function.generate_pull_request_params import GeneratePullRequestParamsFunction
+from src.agent.function.generate_pull_request_params import (
+    GeneratePullRequestParamsFunction,
+)
 from src.agent.function.get_files_list import GetFilesListFunction
 from src.agent.function.google_search import GoogleSearchFunction
 from src.agent.function.make_new_file import MakeNewFileFunction
@@ -13,10 +15,17 @@ from src.agent.schema.programmer_output import ProgrammerOutput
 from src.application.chain.pydantic_chain import PydanticChain
 from src.application.client.llm.azure_openai_client import AzureOpenAIClient
 from src.application.dependency.chaindependency import ChainDependency
-from src.infrastructure.config.prompt import AGENT_SYSTEM_MESSAGE, PROGRAMMER_PROMPT_TEMPLATE
+from src.infrastructure.config.prompt import (
+    AGENT_SYSTEM_MESSAGE,
+    PROGRAMMER_PROMPT_TEMPLATE,
+)
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.messages import SystemMessage
-from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+)
 from langchain_core.tools import BaseTool
 
 
@@ -69,7 +78,9 @@ class ProgrammerAgent:
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
+        return AgentExecutor(
+            agent=agent, tools=self.tools, max_iterations=30, verbose=True
+        )
 
     def run(self, instruction: str, reviewer_comment: str | None = None) -> str:
         """プログラマーエージェントを実行する.
@@ -82,14 +93,21 @@ class ProgrammerAgent:
             str: プログラマーの出力
         """
         if reviewer_comment:
-            input_text = f"{instruction}\n\n[Reviewerからのフィードバック]:\n{reviewer_comment}"
+            input_text = (
+                f"{instruction}\n\n[Reviewerからのフィードバック]:\n{reviewer_comment}"
+            )
         else:
             input_text = instruction
 
         result = self.agent_executor.invoke({"input": input_text})
         return result["output"]
 
-    def get_diff(self, base_branch: str | None = None, target_branch: str | None = None, file_path: str | None = None) -> str:
+    def get_diff(
+        self,
+        base_branch: str | None = None,
+        target_branch: str | None = None,
+        file_path: str | None = None,
+    ) -> str:
         """現在の変更についてdiffを取得する.
 
         Args:
@@ -100,7 +118,9 @@ class ProgrammerAgent:
             str: 生成されたdiff
         """
         diff_function = GenerateDiffFunction()
-        result = diff_function.execute(base_branch=base_branch, target_branch=target_branch, file_path=file_path)
+        result = diff_function.execute(
+            base_branch=base_branch, target_branch=target_branch, file_path=file_path
+        )
 
         if result["result"] == "error":
             return f"diff取得エラー: {result['message']}"

@@ -8,5 +8,3 @@ class ProgrammerInput(BaseInput):
     """プログラマーエージェントへの入力スキーマ"""
 
     instruction: str = Field(description="ユーザーからの指示")
-
-

@@ -25,7 +25,9 @@ class OpenUrlFunction(BaseFunction):
         markdown_content = markdown_converter.handle(html_content)
 
         if len(markdown_content) > 25000:
-            splitter = RecursiveCharacterTextSplitter(chunk_size=25000, chunk_overlap=128)
+            splitter = RecursiveCharacterTextSplitter(
+                chunk_size=25000, chunk_overlap=128
+            )
             chunks = splitter.split_text(markdown_content)
 
             summaries = []

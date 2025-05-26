@@ -5,7 +5,11 @@ from src.agent.schema.reviewer_output import ReviewerOutput
 from src.application.client.llm.azure_openai_client import AzureOpenAIClient
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.messages import SystemMessage
-from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+)
 from langchain_core.tools import BaseTool
 
 
@@ -50,7 +54,9 @@ class ReviewerAgent:
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
+        return AgentExecutor(
+            agent=agent, tools=self.tools, max_iterations=30, verbose=True
+        )
 
     def run(self, reviewer_input: ReviewerInput) -> ReviewerOutput:
         """コードレビューを実行する.
@@ -72,7 +78,9 @@ class ReviewerAgent:
             
             """
         if reviewer_input.programmer_comment:
-            input_text += f"\n\nプログラマーからのコメント:\n{reviewer_input.programmer_comment}"
+            input_text += (
+                f"\n\nプログラマーからのコメント:\n{reviewer_input.programmer_comment}"
+            )
 
         agent_result = self.agent_executor.invoke({"input": input_text})
         output_text = agent_result["output"]

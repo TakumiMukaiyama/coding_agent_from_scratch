@@ -90,4 +90,4 @@ class GitCommitPushFunction(BaseFunction):
             description="変更をステージングしてコミットし、リモートリポジトリにプッシュします。",
             func=cls.execute,
             args_schema=GitCommitPushInput,
-        ) 
+        )

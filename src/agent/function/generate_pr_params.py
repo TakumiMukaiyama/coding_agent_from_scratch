@@ -57,8 +57,10 @@ class GeneratePullRequestParamsFunction(BaseFunction):
             title_message = [
                 HumanMessage(
                     content=title_prompt.format(
-                        instruction=instruction, 
-                        programmer_output=programmer_output[:500] if programmer_output else "出力なし"
+                        instruction=instruction,
+                        programmer_output=programmer_output[:500]
+                        if programmer_output
+                        else "出力なし",
                     )
                 )
             ]
@@ -97,8 +99,10 @@ class GeneratePullRequestParamsFunction(BaseFunction):
                 HumanMessage(
                     content=description_prompt.format(
                         instruction=instruction,
-                        programmer_output=programmer_output[:500] if programmer_output else "出力なし",
-                        diff=diff[:1000] if diff else "差分なし"
+                        programmer_output=programmer_output[:500]
+                        if programmer_output
+                        else "出力なし",
+                        diff=diff[:1000] if diff else "差分なし",
                     )
                 )
             ]
@@ -125,4 +129,4 @@ class GeneratePullRequestParamsFunction(BaseFunction):
             description="プルリクエストのタイトルと説明文を生成します。",
             func=cls.execute,
             args_schema=GeneratePRParamsInput,
-        ) 
+        )

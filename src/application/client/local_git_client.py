@@ -11,7 +11,13 @@ logger = get_logger(__name__)
 class GitCommitPushPR:
     """エージェントが編集したファイルをコミット、プッシュし、PRを作成するクラス."""
 
-    def __init__(self, repo_path: str, github_token: str, repo_full_name: str, github_username: str):
+    def __init__(
+        self,
+        repo_path: str,
+        github_token: str,
+        repo_full_name: str,
+        github_username: str,
+    ):
         """初期化.
 
         Args:
@@ -76,7 +82,9 @@ class GitCommitPushPR:
                 head_branch = self.repo.active_branch.name
 
             if head_branch == base_branch:
-                raise ValueError(f"ベースブランチ '{base_branch}' とヘッドブランチ '{head_branch}' が同じです")
+                raise ValueError(
+                    f"ベースブランチ '{base_branch}' とヘッドブランチ '{head_branch}' が同じです"
+                )
 
             pr = self.github_client.create_pull_request(
                 repo_full_name=self.repo_full_name,

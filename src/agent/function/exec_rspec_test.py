@@ -11,7 +11,9 @@ class ExecRspecTestFunction(BaseFunction):
     def execute(file_or_dir_path: str) -> Dict[str, str]:
         script = f"bundle exec rspec '{file_or_dir_path}'"
         try:
-            result = subprocess.run(script, shell=True, capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                script, shell=True, capture_output=True, text=True, check=True
+            )
             return {
                 "stdout": result.stdout,
                 "stderr": result.stderr,

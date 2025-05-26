@@ -21,12 +21,16 @@ class ChainDependency(BaseModel):
         # Check if all template variables exist in schema fields
         missing_vars = template_vars - schema_fields
         if missing_vars:
-            raise ValueError(f"Template variables {missing_vars} not found in input schema fields")
+            raise ValueError(
+                f"Template variables {missing_vars} not found in input schema fields"
+            )
 
         # Check if all schema fields are used in template
         unused_fields = schema_fields - template_vars
         if unused_fields:
-            raise ValueError(f"Input schema fields {unused_fields} not used in template")
+            raise ValueError(
+                f"Input schema fields {unused_fields} not used in template"
+            )
 
         return self
 

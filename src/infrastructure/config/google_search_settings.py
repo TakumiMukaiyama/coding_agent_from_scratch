@@ -13,4 +13,5 @@ class GoogleSearchSettings(BaseSettings):
         extra="ignore",
     )
 
+
 google_search_settings = GoogleSearchSettings()

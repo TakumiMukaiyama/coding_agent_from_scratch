@@ -34,7 +34,9 @@ class AgentCoordinator:
         # GitCommitPushPRクライアントを初期化
         self.repo_full_name = "Finatext/ai-contest-hanare-banare"
         self.repo_path = os.getcwd()  # カレントディレクトリをリポジトリパスとして使用
-        self.git_client = GitCommitPushPR(self.repo_path, os.environ["GITHUB_TOKEN"], self.repo_full_name)
+        self.git_client = GitCommitPushPR(
+            self.repo_path, os.environ["GITHUB_TOKEN"], self.repo_full_name
+        )
 
     def generate_branch_name(self, instruction: str) -> str:
         """指示内容からGitブランチ名を生成します.
@@ -147,7 +149,7 @@ class AgentCoordinator:
 
         Returns:
             dict: 開発サイクルの実行結果
-            
+
         Raises:
             ValueError: 作業用ブランチが設定されていない、または差分がない場合
             GitHubException: GitHub関連の操作に失敗した場合
@@ -162,15 +164,19 @@ class AgentCoordinator:
                 logger.info(f"ブランチ名を生成しました: {self.working_branch}")
 
             if not self.working_branch:
-                raise ValueError("ブランチ名が設定されていません。create_working_branch()を先に実行するか、auto_create_branch=Trueを指定してください。")
+                raise ValueError(
+                    "ブランチ名が設定されていません。create_working_branch()を先に実行するか、auto_create_branch=Trueを指定してください。"
+                )
 
             # 開発サイクルの実行
             for i in range(max_iterations):
                 logger.info(f"=== 開発サイクル {i + 1}/{max_iterations} ===")
-                
+
                 programmer_output = self.run_programmer(
                     instruction,
-                    reviewer_comment=reviewer_output.summary if reviewer_output else None
+                    reviewer_comment=reviewer_output.summary
+                    if reviewer_output
+                    else None,
                 )
                 logger.info(f"プログラマー出力: {programmer_output[:100]}...")
 
@@ -180,7 +186,9 @@ class AgentCoordinator:
                 logger.info(f"レビュアー出力: {reviewer_output.summary[:100]}...")
 
                 if reviewer_output.lgtm:
-                    logger.info("レビュー承認 (LGTM) が得られました。サイクルを終了します。")
+                    logger.info(
+                        "レビュー承認 (LGTM) が得られました。サイクルを終了します。"
+                    )
                     break
 
             # 差分の確認と処理
@@ -190,7 +198,14 @@ class AgentCoordinator:
 
             try:
                 diff_output = subprocess.check_output(
-                    ["git", "diff", "--name-only", "HEAD", "--", self.snowflake_tf_dir_path],
+                    [
+                        "git",
+                        "diff",
+                        "--name-only",
+                        "HEAD",
+                        "--",
+                        self.snowflake_tf_dir_path,
+                    ],
                     stderr=subprocess.STDOUT,
                     text=True,
                 )
@@ -207,10 +222,12 @@ class AgentCoordinator:
 
             for file_path in diff_output.splitlines():
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as file:
+                    with open(file_path, "r", encoding="utf-8") as file:
                         content = file.read()
-                    logger.debug(f"ファイル {file_path} の内容を読み込みました（先頭100文字）: {content[:100]}")
-                    
+                    logger.debug(
+                        f"ファイル {file_path} の内容を読み込みました（先頭100文字）: {content[:100]}"
+                    )
+
                     self.github_client.update_file(
                         repo_full_name=self.repo_full_name,
                         file_path=file_path,
@@ -240,18 +257,28 @@ class AgentCoordinator:
                     head_branch=self.working_branch,
                     base_branch=self.base_branch,
                 )
-                pr_url = self.github_client.create_pr_link(self.repo_full_name, pr.number)
-                logger.info(f"プルリクエストを作成しました: #{pr.number}, URL: {pr_url}")
+                pr_url = self.github_client.create_pr_link(
+                    self.repo_full_name, pr.number
+                )
+                logger.info(
+                    f"プルリクエストを作成しました: #{pr.number}, URL: {pr_url}"
+                )
             except GithubException as e:
                 if "already exists" in str(e.data):
                     repo = self.github_client.get_repository(self.repo_full_name)
-                    prs = list(repo.get_pulls(state="open", head=f"{self.working_branch}"))
-                    
+                    prs = list(
+                        repo.get_pulls(state="open", head=f"{self.working_branch}")
+                    )
+
                     if not prs:
-                        raise ValueError("既存のPRが存在するとエラーが表示されましたが、見つかりませんでした")
-                    
+                        raise ValueError(
+                            "既存のPRが存在するとエラーが表示されましたが、見つかりませんでした"
+                        )
+
                     existing_pr = prs[0]
-                    logger.info(f"既存のPRが見つかりました: #{existing_pr.number}, URL: {existing_pr.html_url}")
+                    logger.info(
+                        f"既存のPRが見つかりました: #{existing_pr.number}, URL: {existing_pr.html_url}"
+                    )
                     pr = existing_pr
                     pr_url = existing_pr.html_url
                 else:

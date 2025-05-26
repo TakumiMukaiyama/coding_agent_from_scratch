@@ -14,7 +14,9 @@ class ReviewCodeFunction(BaseFunction):
 
         ここではスタブ応答を返すだけで例外を起こさない.
         """
-        return {"message": "Handled by LLM FunctionCalling. No real processing done here."}
+        return {
+            "message": "Handled by LLM FunctionCalling. No real processing done here."
+        }
 
     @classmethod
     def to_tool(cls: type["ReviewCodeFunction"]) -> StructuredTool:

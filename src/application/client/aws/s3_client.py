@@ -73,7 +73,9 @@ class S3Client:
             logger.error(f"S3ファイルダウンロードエラー: {str(e)}")
             raise e
 
-    def get_csv_as_dataframe(self, key: str, encoding: str = 'utf-8', **kwargs) -> Optional[pd.DataFrame]:
+    def get_csv_as_dataframe(
+        self, key: str, encoding: str = "utf-8", **kwargs
+    ) -> Optional[pd.DataFrame]:
         """S3からCSVファイルを取得してDataFrameに変換します
 
         Args:
@@ -91,11 +93,13 @@ class S3Client:
             # オブジェクトを取得
             response = self.s3.get_object(Bucket=self.bucket_name, Key=key)
             # レスポンスのBodyからCSVデータを読み込む
-            csv_content = response['Body'].read().decode(encoding)
+            csv_content = response["Body"].read().decode(encoding)
             # StringIOに変換してpandasで読み込む
             csv_buffer = io.StringIO(csv_content)
             df = pd.read_csv(csv_buffer, **kwargs)
-            logger.info(f"CSVファイルをDataFrameに変換しました: {key}, サイズ: {df.shape}")
+            logger.info(
+                f"CSVファイルをDataFrameに変換しました: {key}, サイズ: {df.shape}"
+            )
             return df
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
@@ -107,4 +111,3 @@ class S3Client:
         except Exception as e:
             logger.error(f"CSVのDataFrame変換エラー: {str(e)}")
             raise e
-

@@ -30,13 +30,17 @@ class PydanticChain(BaseChain):
             template=chain_dependency.get_prompt_template(),
             input_variables=chain_dependency.get_input_variables(),
         )
-        self.chain = self.prompt | self.chat_llm.with_structured_output(self.output_schema, method="function_calling")
+        self.chain = self.prompt | self.chat_llm.with_structured_output(
+            self.output_schema, method="function_calling"
+        )
 
     def get_prompt(self, inputs: BaseInput, **kwargs):
         """プロンプトの文字列を取得します。"""
         return self.prompt.invoke(inputs.model_dump(), **kwargs).to_string()
 
-    def invoke_with_retry(self, *args, max_retries: int = 10, llm_client: AzureOpenAIClient, **kwargs):
+    def invoke_with_retry(
+        self, *args, max_retries: int = 10, llm_client: AzureOpenAIClient, **kwargs
+    ):
         """Invoke the chain with retry.
         Args:
             max_retries (int): 最大リトライ回数

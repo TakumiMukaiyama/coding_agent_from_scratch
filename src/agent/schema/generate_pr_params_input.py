@@ -7,4 +7,4 @@ class GeneratePRParamsInput(BaseInput):
 
     instruction: str = Field(..., description="プログラマーへの指示内容")
     programmer_output: str = Field(..., description="プログラマーの出力内容")
-    diff: str = Field(default="", description="コードの差分（オプション）") 
+    diff: str = Field(default="", description="コードの差分（オプション）")
