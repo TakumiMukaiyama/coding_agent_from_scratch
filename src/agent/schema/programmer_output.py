@@ -3,8 +3,8 @@ from pydantic import Field
 from src.application.schema.base import BaseOutput
 
 
-# 出力スキーマの定義
+# Output schema definition
 class ProgrammerOutput(BaseOutput):
-    """プログラマーエージェントからの出力スキーマ"""
+    """Output schema for programmer agent"""
 
-    result: str = Field(description="エージェントからの応答結果")
+    result: str = Field(description="Response result from agent")

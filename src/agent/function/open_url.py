@@ -1,13 +1,14 @@
-import requests
 from typing import Dict, Type
-from bs4 import BeautifulSoup
+
 import html2text
+import requests
+from bs4 import BeautifulSoup
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.tools import StructuredTool
 
+from src.agent.schema.open_url_input import OpenUrlInput
 from src.application.client.llm.azure_openai_client import AzureOpenAIClient
 from src.application.function.base import BaseFunction
-from src.agent.schema.open_url_input import OpenUrlInput
 
 
 class OpenUrlFunction(BaseFunction):
@@ -35,7 +36,7 @@ class OpenUrlFunction(BaseFunction):
             chat_llm = llm_client.initialize_chat()
 
             for chunk in chunks:
-                system_prompt = f"以下の情報を基に、{what_i_want_to_know}に関連する重要な情報をまとめてください。"
+                system_prompt = f"Based on the following information, please summarize important information related to {what_i_want_to_know}."
                 messages = [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": chunk},
@@ -57,7 +58,7 @@ class OpenUrlFunction(BaseFunction):
     def to_tool(cls: Type["OpenUrlFunction"]) -> StructuredTool:
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="指定されたURLを開き、ページ内容を取得して要約します。",
+            description="Opens the specified URL and retrieves and summarizes the page content.",
             func=cls.execute,
             args_schema=OpenUrlInput,
         )

@@ -4,5 +4,9 @@ from src.application.schema.base import BaseInput
 
 
 class OpenUrlInput(BaseInput):
-    url: str = Field(..., description="取得するWebページのURL")
-    what_i_want_to_know: str = Field(..., description="このページから知りたいこと")
+    """Input for opening a web page"""
+
+    url: str = Field(..., description="URL of the web page to retrieve")
+    what_i_want_to_know: str = Field(
+        ..., description="What I want to know from this page"
+    )

@@ -8,7 +8,7 @@ from langchain_core.tools import StructuredTool
 from src.agent.schema.get_files_list_input import GetFilesListInput
 from src.application.function.base import BaseFunction
 
-# プロンプト設定ファイルからの言語設定をインポート（オプション）
+# Import language settings from prompt configuration file (optional)
 try:
     from src.infrastructure.config.prompt import get_language_config
 
@@ -18,7 +18,7 @@ except ImportError:
 
 
 class GetFilesListFunction(BaseFunction):
-    # 言語別のデフォルトファイル拡張子
+    # Default file extensions by language
     DEFAULT_EXTENSIONS_BY_LANGUAGE = {
         "python": ["py", "pyx", "pyi", "ipynb"],
         "javascript": ["js", "jsx", "mjs", "cjs"],
@@ -48,7 +48,7 @@ class GetFilesListFunction(BaseFunction):
         "text": ["txt", "log", "conf", "cfg", "ini"],
     }
 
-    # 一般的な除外パターン
+    # Common exclude patterns
     DEFAULT_EXCLUDE_PATTERNS = [
         "**/node_modules/**",
         "**/__pycache__/**",
@@ -86,21 +86,21 @@ class GetFilesListFunction(BaseFunction):
         max_files: int = 1000,
     ) -> Dict[str, List[str]]:
         """
-        指定された条件に基づいてファイル一覧を取得する
+        Get file list based on specified conditions
 
         Args:
-            file_extensions: 取得するファイルの拡張子リスト
-            include_patterns: 含めるファイルパターンのリスト
-            exclude_patterns: 除外するファイルパターンのリスト
-            root_directory: 検索を開始するルートディレクトリ
-            max_files: 取得するファイル数の上限
+            file_extensions: List of file extensions to retrieve
+            include_patterns: List of file patterns to include
+            exclude_patterns: List of file patterns to exclude
+            root_directory: Root directory to start search from
+            max_files: Maximum number of files to retrieve
 
         Returns:
-            ファイル一覧を含む辞書
+            Dictionary containing file list
         """
-        # デフォルト設定の適用
+        # Apply default settings
         if file_extensions is None and include_patterns is None:
-            # デフォルトで一般的なコードファイルを取得
+            # Get common code files by default
             file_extensions = (
                 GetFilesListFunction.DEFAULT_EXTENSIONS_BY_LANGUAGE["python"]
                 + GetFilesListFunction.DEFAULT_EXTENSIONS_BY_LANGUAGE["javascript"]
@@ -113,55 +113,55 @@ class GetFilesListFunction(BaseFunction):
         if exclude_patterns is None:
             exclude_patterns = GetFilesListFunction.DEFAULT_EXCLUDE_PATTERNS
         else:
-            # ユーザー指定の除外パターンにデフォルトを追加
+            # Add default patterns to user-specified exclude patterns
             exclude_patterns = list(
                 set(exclude_patterns + GetFilesListFunction.DEFAULT_EXCLUDE_PATTERNS)
             )
 
-        # ルートディレクトリの正規化
+        # Normalize root directory
         root_path = Path(root_directory).resolve()
         if not root_path.exists():
             return {
                 "files_list": [],
-                "error": f"指定されたディレクトリが存在しません: {root_directory}",
+                "error": f"Specified directory does not exist: {root_directory}",
             }
 
         files_set: Set[str] = set()
 
-        # 現在のディレクトリを変更
+        # Change current directory
         original_cwd = os.getcwd()
         try:
             os.chdir(root_path)
 
-            # include_patternsが指定されている場合
+            # If include_patterns is specified
             if include_patterns:
                 for pattern in include_patterns:
                     files_set.update(glob.glob(pattern, recursive=True))
 
-            # file_extensionsが指定されている場合
+            # If file_extensions is specified
             if file_extensions:
                 for ext in file_extensions:
-                    # 拡張子から先頭のドットを除去
+                    # Remove leading dot from extension
                     ext = ext.lstrip(".")
                     pattern = f"**/*.{ext}"
                     files_set.update(glob.glob(pattern, recursive=True))
 
-            # 除外パターンの適用
+            # Apply exclude patterns
             if exclude_patterns:
                 excluded_files = set()
                 for pattern in exclude_patterns:
                     excluded_files.update(glob.glob(pattern, recursive=True))
                 files_set -= excluded_files
 
-            # ファイルのみをフィルタリング（ディレクトリを除外）
+            # Filter files only (exclude directories)
             files_list = [f for f in files_set if os.path.isfile(f)]
 
-            # ファイル数の制限
+            # Limit number of files
             if len(files_list) > max_files:
                 files_list = files_list[:max_files]
                 return {
                     "files_list": sorted(files_list),
-                    "warning": f"ファイル数が上限（{max_files}）を超えたため、一部のファイルのみ表示しています。",
+                    "warning": f"Number of files exceeded the limit ({max_files}), showing only some files.",
                 }
 
             return {"files_list": sorted(files_list)}
@@ -172,23 +172,23 @@ class GetFilesListFunction(BaseFunction):
     @classmethod
     def get_extensions_for_language(cls, language: str) -> List[str]:
         """
-        指定された言語のデフォルトファイル拡張子を取得する
+        Get default file extensions for the specified language
 
         Args:
-            language: プログラミング言語名
+            language: Programming language name
 
         Returns:
-            ファイル拡張子のリスト
+            List of file extensions
         """
         return cls.DEFAULT_EXTENSIONS_BY_LANGUAGE.get(language.lower(), [])
 
     @classmethod
     def get_all_supported_languages(cls) -> List[str]:
         """
-        サポートされている全ての言語のリストを取得する
+        Get list of all supported languages
 
         Returns:
-            サポートされている言語のリスト
+            List of supported languages
         """
         return list(cls.DEFAULT_EXTENSIONS_BY_LANGUAGE.keys())
 
@@ -197,30 +197,30 @@ class GetFilesListFunction(BaseFunction):
         cls, language: str, root_directory: str = ".", max_files: int = 1000
     ) -> Dict[str, List[str]]:
         """
-        指定された言語のファイルを取得する便利メソッド
+        Convenience method to get files for the specified language
 
         Args:
-            language: プログラミング言語名
-            root_directory: 検索を開始するルートディレクトリ
-            max_files: 取得するファイル数の上限
+            language: Programming language name
+            root_directory: Root directory to start search from
+            max_files: Maximum number of files to retrieve
 
         Returns:
-            ファイル一覧を含む辞書
+            Dictionary containing file list
         """
         extensions = cls.get_extensions_for_language(language)
         if not extensions:
             return {
                 "files_list": [],
-                "error": f"サポートされていない言語です: {language}",
+                "error": f"Unsupported language: {language}",
             }
 
-        # プロンプト設定ファイルから設定ファイルも取得（利用可能な場合）
+        # Also get config files from prompt config file (if available)
         if PROMPT_CONFIG_AVAILABLE:
             try:
                 config = get_language_config(language)
                 config_files = config.get("config_files", [])
                 if config_files:
-                    # 設定ファイルのパターンを追加
+                    # Add config file patterns
                     include_patterns = [f"**/{cf}" for cf in config_files]
                     return cls.execute(
                         file_extensions=extensions,
@@ -229,7 +229,7 @@ class GetFilesListFunction(BaseFunction):
                         max_files=max_files,
                     )
             except Exception:
-                pass  # 設定取得に失敗した場合は通常の処理を続行
+                pass  # Continue with normal processing if config retrieval fails
 
         return cls.execute(
             file_extensions=extensions,
@@ -241,16 +241,16 @@ class GetFilesListFunction(BaseFunction):
     def to_tool(cls: Type["GetFilesListFunction"]) -> StructuredTool:
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="""プロジェクト配下のファイル一覧を取得します。
+            description="""Get file list under the project.
             
-使用例:
-- 全ての一般的なコードファイルを取得: パラメータなし
-- Pythonファイルのみ: file_extensions=['py']
-- 特定パターン: include_patterns=['src/**/*.js']
-- 除外パターン: exclude_patterns=['**/test/**']
-- 特定ディレクトリから: root_directory='src/'
+Usage examples:
+- Get all common code files: no parameters
+- Python files only: file_extensions=['py']
+- Specific patterns: include_patterns=['src/**/*.js']
+- Exclude patterns: exclude_patterns=['**/test/**']
+- From specific directory: root_directory='src/'
 
-サポートされている言語: python, javascript, typescript, java, go, rust, c, cpp, csharp, php, ruby, swift, kotlin, scala, terraform, yaml, json, xml, html, css, sql, shell, powershell, docker, markdown, text
+Supported languages: python, javascript, typescript, java, go, rust, c, cpp, csharp, php, ruby, swift, kotlin, scala, terraform, yaml, json, xml, html, css, sql, shell, powershell, docker, markdown, text
             """,
             func=cls.execute,
             args_schema=GetFilesListInput,
@@ -258,46 +258,46 @@ class GetFilesListFunction(BaseFunction):
 
 
 """
-使用例:
+Usage examples:
 
-# 基本的な使用方法
+# Basic usage
 from src.agent.function.get_files_list import GetFilesListFunction
 
-# 1. 全ての一般的なコードファイルを取得
+# 1. Get all common code files
 result = GetFilesListFunction.execute()
 print(result["files_list"])
 
-# 2. Pythonファイルのみを取得
+# 2. Get Python files only
 result = GetFilesListFunction.execute(file_extensions=["py"])
 print(result["files_list"])
 
-# 3. 特定のパターンでファイルを取得
+# 3. Get files with specific patterns
 result = GetFilesListFunction.execute(include_patterns=["src/**/*.js", "tests/**/*.py"])
 print(result["files_list"])
 
-# 4. 除外パターンを指定
+# 4. Specify exclude patterns
 result = GetFilesListFunction.execute(
     file_extensions=["py"],
     exclude_patterns=["**/test/**", "**/migrations/**"]
 )
 print(result["files_list"])
 
-# 5. 特定のディレクトリから検索
+# 5. Search from specific directory
 result = GetFilesListFunction.execute(
     file_extensions=["ts", "tsx"],
     root_directory="frontend/src"
 )
 print(result["files_list"])
 
-# 6. 言語固有のファイルを取得（便利メソッド）
+# 6. Get language-specific files (convenience method)
 result = GetFilesListFunction.get_files_for_language("python")
 print(result["files_list"])
 
-# 7. サポートされている言語の一覧を取得
+# 7. Get list of supported languages
 languages = GetFilesListFunction.get_all_supported_languages()
 print(languages)
 
-# 8. 特定言語の拡張子を取得
+# 8. Get extensions for specific language
 extensions = GetFilesListFunction.get_extensions_for_language("typescript")
 print(extensions)  # ['ts', 'tsx', 'd.ts']
 """

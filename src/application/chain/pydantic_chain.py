@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class PydanticChain(BaseChain):
+    """PydanticChain class"""
+
     prompt: PromptTemplate
     chain: RunnableSequence
     output_schema: type[BaseModel]
@@ -35,7 +37,7 @@ class PydanticChain(BaseChain):
         )
 
     def get_prompt(self, inputs: BaseInput, **kwargs):
-        """プロンプトの文字列を取得します。"""
+        """Get the prompt string."""
         return self.prompt.invoke(inputs.model_dump(), **kwargs).to_string()
 
     def invoke_with_retry(
@@ -43,23 +45,25 @@ class PydanticChain(BaseChain):
     ):
         """Invoke the chain with retry.
         Args:
-            max_retries (int): 最大リトライ回数
-            llm_client (AzureOpenAIClient | NomuchatClient): LLMクライアント
-            *args: チェーンに渡す位置引数
-            **kwargs: チェーンに渡すキーワード引数
+            max_retries (int): Maximum number of retries
+            llm_client (AzureOpenAIClient | NomuchatClient): LLM client
+            *args: Positional arguments to pass to the chain
+            **kwargs: Keyword arguments to pass to the chain
         Returns:
-            Any: チェーンの実行結果
+            Any: Chain execution result
         Raises:
-            Exception: エラー発生時に再送出
+            Exception: Re-raises exception when error occurs
         """
         try:
             return self.invoke(*args, **kwargs)
         except Exception as e:
             error_msg = str(e).lower()
-            # 429: レート制限
+            # 429: Rate limit
             if any(msg in error_msg for msg in ["rate limit", "requests", "threshold"]):
                 last_error = e
-                for attempt in range(max_retries - 1):  # 初回実行を除いてリトライ
+                for attempt in range(
+                    max_retries - 1
+                ):  # Retry excluding initial execution
                     time.sleep(60)
                     try:
                         return self.invoke(*args, **kwargs)
@@ -68,7 +72,7 @@ class PydanticChain(BaseChain):
                         continue
                 raise last_error
 
-            # その他のエラー
+            # Other errors
             raise e
 
     def invoke(self, inputs: BaseInput, **kwargs):

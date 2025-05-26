@@ -1,13 +1,16 @@
 from typing import Dict, Type
+
 from langchain_core.tools import StructuredTool
 
-from src.application.function.base import BaseFunction
 from src.agent.schema.generate_pull_request_params_input import (
     GeneratePullRequestParamsInput,
 )
+from src.application.function.base import BaseFunction
 
 
 class GeneratePullRequestParamsFunction(BaseFunction):
+    """Function to generate pull request parameters"""
+
     def __init__(self):
         self.title: str = ""
         self.description: str = ""
@@ -29,7 +32,7 @@ class GeneratePullRequestParamsFunction(BaseFunction):
 
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="Pull Requestのタイトル・説明・ブランチ名を生成します。",
+            description="Generates title, description, and branch name for Pull Request.",
             func=wrapper,
             args_schema=GeneratePullRequestParamsInput,
         )

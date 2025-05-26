@@ -1,4 +1,5 @@
 from typing import List
+
 from pydantic import Field
 
 from src.application.schema.base import BaseOutput
@@ -6,11 +7,12 @@ from src.application.schema.base import BaseOutput
 
 class ReviewerOutput(BaseOutput):
     """
-    コードレビュー後の出力データ
+    Output data after code review
     """
 
-    summary: str = Field(..., description="レビューまとめコメント")
+    summary: str = Field(..., description="Review summary comment")
     suggestions: List[str] = Field(
-        default_factory=list, description="発見された問題点や改善提案リスト"
+        default_factory=list,
+        description="List of discovered issues and improvement suggestions",
     )
-    lgtm: bool = Field(..., description="問題なければTrue（Looks Good To Me）")
+    lgtm: bool = Field(..., description="True if no issues (Looks Good To Me)")

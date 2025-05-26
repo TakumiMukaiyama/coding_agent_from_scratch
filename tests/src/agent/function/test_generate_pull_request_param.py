@@ -1,5 +1,5 @@
 """
-GeneratePullRequestParamsFunctionの単体テスト
+Unit test for GeneratePullRequestParamsFunction
 """
 
 import unittest
@@ -14,24 +14,24 @@ from src.agent.schema.generate_pull_request_params_input import (
 
 
 class TestGeneratePullRequestParamsFunction(unittest.TestCase):
-    """GeneratePullRequestParamsFunctionのテストクラス"""
+    """Test class for GeneratePullRequestParamsFunction"""
 
     def test_execute(self):
-        """execute メソッドのテスト"""
-        # テスト対象のインスタンスを作成
+        """Test for execute method"""
+        # Create test instance
         function = GeneratePullRequestParamsFunction()
 
-        # パラメータの準備
-        title = "テストPRのタイトル"
-        description = "テストPRの説明文"
+        # Prepare parameters
+        title = "Test PR title"
+        description = "Test PR description"
         branch_name = "test/branch-name"
 
-        # テスト実行
+        # Test execution
         result = function.execute(
             title=title, description=description, branch_name=branch_name
         )
 
-        # 検証
+        # Verification
         self.assertEqual(result, {"result": "success"})
         self.assertEqual(function.title, title)
         self.assertEqual(function.description, description)
@@ -41,11 +41,11 @@ class TestGeneratePullRequestParamsFunction(unittest.TestCase):
         "src.agent.function.generate_pull_request_params.StructuredTool.from_function"
     )
     def test_to_tool(self, mock_from_function):
-        """to_tool メソッドのテスト"""
-        # モックの設定
+        """Test for to_tool method"""
+        # Set up mock
         mock_from_function.return_value = "mock_tool"
 
-        # テスト実行
+        # Test execution
         with patch.object(
             GeneratePullRequestParamsFunction,
             "function_name",
@@ -53,7 +53,7 @@ class TestGeneratePullRequestParamsFunction(unittest.TestCase):
         ):
             result = GeneratePullRequestParamsFunction.to_tool()
 
-        # 検証
+        # Verification
         mock_from_function.assert_called_once()
         self.assertEqual(
             mock_from_function.call_args[1]["name"],
@@ -61,9 +61,9 @@ class TestGeneratePullRequestParamsFunction(unittest.TestCase):
         )
         self.assertEqual(
             mock_from_function.call_args[1]["description"],
-            "Pull Requestのタイトル・説明・ブランチ名を生成します。",
+            "Generate title, description, and branch name for Pull Request.",
         )
-        # wrapperがパラメータとして渡されていることを確認
+        # Check that
         self.assertTrue(callable(mock_from_function.call_args[1]["func"]))
         self.assertEqual(
             mock_from_function.call_args[1]["args_schema"],
@@ -72,8 +72,8 @@ class TestGeneratePullRequestParamsFunction(unittest.TestCase):
         self.assertEqual(result, "mock_tool")
 
     def test_wrapper_functionality(self):
-        """wrapper関数の機能テスト"""
-        # モックを使用してwrapper関数を取得
+        """Test for wrapper function"""
+        # Get wrapper function using mock
         with (
             patch(
                 "src.agent.function.generate_pull_request_params.StructuredTool.from_function"
@@ -87,10 +87,10 @@ class TestGeneratePullRequestParamsFunction(unittest.TestCase):
             GeneratePullRequestParamsFunction.to_tool()
             wrapper_func = mock_from_function.call_args[1]["func"]
 
-        # wrapperに渡される前後でインスタンスの状態が更新されることを確認
+        # Check that the instance state is updated before and after being passed to wrapper
         result = wrapper_func(
-            title="ラップされたタイトル",
-            description="ラップされた説明",
+            title="Wrapped title",
+            description="Wrapped description",
             branch_name="wrapped/branch-name",
         )
 

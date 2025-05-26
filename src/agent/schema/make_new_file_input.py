@@ -3,5 +3,7 @@ from src.application.schema.base import BaseInput
 
 
 class MakeNewFileInput(BaseInput):
-    filepath: str = Field(..., description="作成するファイルのパス")
-    file_contents: str = Field(..., description="ファイルに書き込む内容")
+    """Input for creating a new file"""
+
+    filepath: str = Field(..., description="Path of the file to create")
+    file_contents: str = Field(..., description="Contents to write to the file")

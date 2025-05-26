@@ -1,10 +1,13 @@
 from typing import Any
+
 from googleapiclient.discovery import build
 
 from src.infrastructure.config.google_search_settings import google_search_settings
 
 
 class GoogleSearchClient:
+    """Client class for interacting with Google Search API."""
+
     def __init__(self) -> None:
         self.api_key = google_search_settings.GOOGLE_API_KEY
         self.cx = google_search_settings.CUSTOM_SEARCH_ENGINE_ID
@@ -21,15 +24,15 @@ class GoogleSearchClient:
 
     def search(self, query: str, num: int = 10, start: int = 1) -> dict:
         """
-        指定したクエリでGoogle検索を実行し、検索結果を返す。
+        Execute Google search with the specified query and return search results.
 
         Args:
-            query (str): 検索ワード
-            num (int, optional): 取得件数（デフォルト10件）
-            start (int, optional): 開始インデックス（デフォルト1）
+            query (str): Search term
+            num (int, optional): Number of results to retrieve (default 10)
+            start (int, optional): Starting index (default 1)
 
         Returns:
-            dict: APIレスポンス（JSON形式）
+            dict: API response (JSON format)
         """
         service = self.get_service()
         response = (

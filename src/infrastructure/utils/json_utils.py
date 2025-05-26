@@ -1,7 +1,7 @@
 """
-JSON操作に関するユーティリティ関数・クラス
+Utility functions and classes for JSON operations
 
-JSONデータの変換や処理に関する汎用的な機能を提供します。
+Provides general-purpose functionality for JSON data conversion and processing.
 """
 
 import json
@@ -10,20 +10,20 @@ from datetime import datetime
 
 class DateTimeEncoder(json.JSONEncoder):
     """
-    datetimeオブジェクトをISOフォーマット文字列に変換するJSONエンコーダー
+    JSON encoder that converts datetime objects to ISO format strings
 
-    標準のJSONエンコーダーを拡張し、datetimeオブジェクトをシリアライズできるようにします。
+    Extends the standard JSON encoder to enable serialization of datetime objects.
     """
 
     def default(self, obj):
         """
-        オブジェクトのシリアライズ方法を定義
+        Define the serialization method for objects
 
         Args:
-            obj: シリアライズ対象のオブジェクト
+            obj: Object to be serialized
 
         Returns:
-            シリアライズされた値
+            Serialized value
         """
         if isinstance(obj, datetime):
             return obj.isoformat()

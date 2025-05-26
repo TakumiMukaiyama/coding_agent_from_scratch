@@ -1,10 +1,11 @@
-from src.application.schema.base import BaseInput
 from pydantic import Field
+
+from src.application.schema.base import BaseInput
 
 
 class GeneratePRParamsInput(BaseInput):
-    """プルリクエストパラメータ生成用の入力データ"""
+    """Input data for generating pull request parameters"""
 
-    instruction: str = Field(..., description="プログラマーへの指示内容")
-    programmer_output: str = Field(..., description="プログラマーの出力内容")
-    diff: str = Field(default="", description="コードの差分（オプション）")
+    instruction: str = Field(..., description="Instructions to the programmer")
+    programmer_output: str = Field(..., description="Output from the programmer")
+    diff: str = Field(default="", description="Code diff (optional)")

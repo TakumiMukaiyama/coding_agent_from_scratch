@@ -1,89 +1,89 @@
 """
-汎用プロンプトテンプレート設定
+Generic prompt template configuration
 
-このモジュールは任意のプログラミング言語とプロジェクトタイプに対応した
-プロンプトテンプレートを提供します。
+This module provides prompt templates that support arbitrary programming languages
+and project types.
 
-使用例:
-    # Python プロジェクトの場合
+Usage examples:
+    # For Python projects
     from src.agent.schema.programmer_input import ProgrammerInput
 
     input_data = ProgrammerInput(
-        instruction="新しいAPIエンドポイントを作成してください",
+        instruction="Please create a new API endpoint",
         language="Python",
-        project_type="Webアプリケーション",
+        project_type="Web application",
         project_root="src/"
     )
 
-    # TypeScript プロジェクトの場合
+    # For TypeScript projects
     input_data = ProgrammerInput(
-        instruction="新しいコンポーネントを作成してください",
+        instruction="Please create a new component",
         language="TypeScript",
-        project_type="React アプリケーション",
+        project_type="React application",
         project_root="frontend/"
     )
 
-    # Terraform プロジェクトの場合
+    # For Terraform projects
     input_data = ProgrammerInput(
-        instruction="新しいリソースを定義してください",
+        instruction="Please define a new resource",
         language="Terraform",
-        project_type="インフラストラクチャ管理",
+        project_type="Infrastructure management",
         project_root="terraform/"
     )
 
-    # 言語固有の設定を取得
+    # Get language-specific configuration
     config = get_language_config("python")
     print(config["test_command"])  # "pytest"
 """
 
-# プロンプトテンプレートの定義
+# Prompt template definition
 PROGRAMMER_PROMPT_TEMPLATE = """
-あなたは '{project_root}' ディレクトリをルートとする{language}プロジェクトのプログラマーエージェントです。
-以下のユーザー指示に従ってファイルを編集してください。
+You are a programmer agent for a {language} project with '{project_root}' directory as root.
+Please edit files according to the following user instructions.
 
-## プロジェクト情報
-- プログラミング言語: {language}
-- プロジェクトタイプ: {project_type}
-- ルートディレクトリ: {project_root}
+## Project Information
+- Programming Language: {language}
+- Project Type: {project_type}
+- Root Directory: {project_root}
 
-必要に応じて以下のツールを活用してタスクを実行してください：
-- GetFilesList：プロジェクト内のファイル一覧を取得する
-- ReadFile：ファイルの内容を読む
-- MakeNewFile：新しいファイルを作成する
-- OverwriteFile：既存ファイルを上書きする
-- ExecTest：テストを実行する（言語に応じたテストフレームワークを使用）
-- GeneratePullRequestParams：PR作成に必要な情報を生成する
-- RecordLgtm：LGTM（レビュー承認）を記録する
+Please use the following tools as needed to execute tasks:
+- GetFilesList: Get list of files in the project
+- ReadFile: Read file contents
+- MakeNewFile: Create new files
+- OverwriteFile: Overwrite existing files
+- ExecTest: Execute tests (using test framework appropriate for the language)
+- GeneratePullRequestParams: Generate information needed for PR creation
+- RecordLgtm: Record LGTM (review approval)
 
-## 言語固有の考慮事項
+## Language-specific Considerations
 {language_specific_notes}
 
-ユーザーからの指示: 
+User instruction: 
 {instruction}
 """
 
-# エージェントのシステムメッセージ
-AGENT_SYSTEM_MESSAGE = """あなたはプロフェッショナルなプログラミングアシスタントです。
-ユーザーの指示に基づき、プロジェクト（ルートは {project_root}）の中で、適切なツールを組み合わせて
-コーディング、ファイル操作、テスト実行、情報収集などを行い、目的達成を支援してください。
+# Agent system message
+AGENT_SYSTEM_MESSAGE = """You are a professional programming assistant.
+Based on user instructions, please perform coding, file operations, test execution, information gathering, etc.
+by combining appropriate tools within the project (root is {project_root}) to help achieve the objectives.
 
-- 実行の前には、まず必要な情報を把握し、ツール選定と段階的な実行を行ってください。
-- ディレクトリを指定された場合は、必ずどこにそのディレクトリがあるかを確認してください。
-- プロジェクトの言語やフレームワークの慣習に従ってコードを記述してください。
-一貫性と再現性のある、正確なコード操作を心がけてください。
+- Before execution, first understand the necessary information and perform tool selection and step-by-step execution.
+- When a directory is specified, always check where that directory is located.
+- Write code following the conventions of the project's language and framework.
+Please aim for consistent, reproducible, and accurate code operations.
 """
 
-# 言語固有の設定テンプレート
+# Language-specific configuration templates
 LANGUAGE_SPECIFIC_CONFIGS = {
     "python": {
         "test_command": "pytest",
         "package_manager": "pip",
         "config_files": ["requirements.txt", "pyproject.toml", "setup.py"],
         "notes": """
-- PEP 8に従ったコーディングスタイルを維持してください
-- 型ヒントを適切に使用してください
-- docstringを適切に記述してください
-- 仮想環境の使用を推奨します
+- Maintain coding style following PEP 8
+- Use type hints appropriately
+- Write proper docstrings
+- Virtual environment usage is recommended
         """,
     },
     "javascript": {
@@ -91,9 +91,9 @@ LANGUAGE_SPECIFIC_CONFIGS = {
         "package_manager": "npm",
         "config_files": ["package.json", "package-lock.json"],
         "notes": """
-- ESLintやPrettierの設定に従ってください
-- モジュールシステム（ES6 modules）を適切に使用してください
-- 非同期処理にはasync/awaitを使用してください
+- Follow ESLint and Prettier configurations
+- Use module system (ES6 modules) appropriately
+- Use async/await for asynchronous processing
         """,
     },
     "typescript": {
@@ -101,9 +101,9 @@ LANGUAGE_SPECIFIC_CONFIGS = {
         "package_manager": "npm",
         "config_files": ["package.json", "tsconfig.json"],
         "notes": """
-- TypeScriptの型システムを最大限活用してください
-- strictモードを有効にしてください
-- インターフェースや型定義を適切に使用してください
+- Make full use of TypeScript's type system
+- Enable strict mode
+- Use interfaces and type definitions appropriately
         """,
     },
     "java": {
@@ -111,9 +111,9 @@ LANGUAGE_SPECIFIC_CONFIGS = {
         "package_manager": "maven",
         "config_files": ["pom.xml", "build.gradle"],
         "notes": """
-- Javaの命名規則に従ってください
-- 適切な例外処理を実装してください
-- JavaDocコメントを記述してください
+- Follow Java naming conventions
+- Implement proper exception handling
+- Write JavaDoc comments
         """,
     },
     "go": {
@@ -121,9 +121,9 @@ LANGUAGE_SPECIFIC_CONFIGS = {
         "package_manager": "go mod",
         "config_files": ["go.mod", "go.sum"],
         "notes": """
-- gofmtでフォーマットしてください
-- エラーハンドリングを適切に行ってください
-- パッケージ構造を適切に設計してください
+- Format with gofmt
+- Handle errors appropriately
+- Design package structure properly
         """,
     },
     "rust": {
@@ -131,9 +131,9 @@ LANGUAGE_SPECIFIC_CONFIGS = {
         "package_manager": "cargo",
         "config_files": ["Cargo.toml", "Cargo.lock"],
         "notes": """
-- Rustの所有権システムを理解して使用してください
-- cargo fmtでフォーマットしてください
-- エラーハンドリングにResult型を使用してください
+- Understand and use Rust's ownership system
+- Format with cargo fmt
+- Use Result type for error handling
         """,
     },
     "terraform": {
@@ -141,9 +141,9 @@ LANGUAGE_SPECIFIC_CONFIGS = {
         "package_manager": "terraform",
         "config_files": ["main.tf", "variables.tf", "outputs.tf"],
         "notes": """
-- Terraformのベストプラクティスに従ってください
-- 変数とアウトプットを適切に定義してください
-- リソースの命名規則を統一してください
+- Follow Terraform best practices
+- Define variables and outputs appropriately
+- Unify resource naming conventions
         """,
     },
 }
@@ -151,12 +151,12 @@ LANGUAGE_SPECIFIC_CONFIGS = {
 
 def get_language_config(language: str) -> dict:
     """
-    指定された言語の設定を取得する
+    Get configuration for the specified language
 
     Args:
-        language: プログラミング言語
+        language: Programming language
 
     Returns:
-        言語固有の設定辞書
+        Language-specific configuration dictionary
     """
     return LANGUAGE_SPECIFIC_CONFIGS.get(language.lower(), {})

@@ -13,24 +13,24 @@ from src.application.client.github_client import GitHubClient
 
 
 class TestGitHubClient(unittest.TestCase):
-    """GitHubClientクラスのテスト"""
+    """Test for GitHubClient class"""
 
     def setUp(self):
-        """各テスト実行前の準備"""
+        """Setup before tests"""
         self.access_token = "dummy_token"
         self.client = GitHubClient(self.access_token)
         self.repo_full_name = "user/repo"
 
     @patch("src.application.client.github_client.Github")
     def test_init(self, mock_github):
-        """初期化のテスト"""
+        """Test for initialization"""
         _ = GitHubClient(self.access_token)
         mock_github.assert_called_once_with(self.access_token)
 
     @patch.object(GitHubClient, "get_repository")
     def test_get_repository(self, mock_get_repository):
-        """リポジトリ取得のテスト"""
-        # 正常系
+        """Test for get_repository method"""
+        # Normal case
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
@@ -41,8 +41,8 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_get_repository_error(self, mock_get_repository):
-        """リポジトリ取得エラーのテスト"""
-        # エラー系
+        """Test for get_repository method when error occurs"""
+        # Error case
         error = GithubException(
             404,
             f"リポジトリ '{self.repo_full_name}' の取得に失敗しました: Repository not found",
@@ -60,16 +60,16 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_get_file_content(self, mock_get_repository):
-        """ファイル内容取得のテスト"""
+        """Test for get_file_content method"""
         file_path = "path/to/file.txt"
         file_content = "file content"
         encoded_content = base64.b64encode(file_content.encode()).decode()
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # ファイルコンテンツのモック
+        # Mock file content
         mock_content = MagicMock(spec=ContentFile)
         mock_content.content = encoded_content
         mock_repo.get_contents.return_value = mock_content
@@ -82,14 +82,14 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_get_file_content_directory_error(self, mock_get_repository):
-        """ディレクトリを指定した場合のエラーテスト"""
+        """Test for get_file_content method when directory is specified"""
         file_path = "path/to/directory"
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # ディレクトリの場合はリストが返される
+        # If directory is specified, list is returned
         mock_repo.get_contents.return_value = [
             MagicMock(spec=ContentFile),
             MagicMock(spec=ContentFile),
@@ -102,14 +102,14 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_get_file_content_error(self, mock_get_repository):
-        """ファイル内容取得エラーのテスト"""
+        """Test for get_file_content method when error occurs"""
         file_path = "path/to/file.txt"
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # エラーを発生させる
+        # Raise error
         error = GithubException(404, {"message": "File not found"})
         mock_repo.get_contents.side_effect = error
 
@@ -117,23 +117,21 @@ class TestGitHubClient(unittest.TestCase):
             self.client.get_file_content(self.repo_full_name, file_path)
 
         self.assertEqual(context.exception.status, 404)
-        self.assertIn(
-            f"ファイル '{file_path}' の取得に失敗", str(context.exception.data)
-        )
+        self.assertIn(f"Failed to get file '{file_path}'", str(context.exception.data))
 
     @patch.object(GitHubClient, "get_repository")
     def test_create_file(self, mock_get_repository):
-        """ファイル作成のテスト"""
+        """Test for create_file method"""
         file_path = "path/to/file.txt"
         content = "new file content"
         commit_message = "test commit"
         branch = "test-branch"
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # create_fileの戻り値
+        # Return value of create_file
         expected_result = {
             "commit": {"sha": "commit_sha"},
             "content": {"sha": "content_sha"},
@@ -156,19 +154,19 @@ class TestGitHubClient(unittest.TestCase):
     @patch.object(GitHubClient, "get_file_sha")
     @patch.object(GitHubClient, "get_repository")
     def test_update_file(self, mock_get_repository, mock_get_file_sha):
-        """ファイル更新のテスト"""
+        """Test for update_file method"""
         file_path = "path/to/file.txt"
         content = "updated file content"
         commit_message = "update commit"
         branch = "test-branch"
         sha = "file_sha"
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
         mock_get_file_sha.return_value = sha
 
-        # update_fileの戻り値
+        # Return value of update_file
         expected_result = {
             "commit": {"sha": "commit_sha"},
             "content": {"sha": "content_sha"},
@@ -194,15 +192,15 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_get_file_sha(self, mock_get_repository):
-        """ファイルSHA取得のテスト"""
+        """Test for get_file_sha method"""
         file_path = "path/to/file.txt"
         expected_sha = "file_sha_123"
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # ファイルコンテンツのモック
+        # Mock file content
         mock_content = MagicMock(spec=ContentFile)
         mock_content.sha = expected_sha
         mock_repo.get_contents.return_value = mock_content
@@ -215,20 +213,20 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_create_branch(self, mock_get_repository):
-        """ブランチ作成のテスト"""
+        """Test for create_branch method"""
         new_branch_name = "new-branch"
         base_branch = "main"
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # 基になるブランチリファレンスのモック
+        # Mock base branch reference
         mock_ref = MagicMock()
         mock_ref.object.sha = "base_commit_sha"
         mock_repo.get_git_ref.return_value = mock_ref
 
-        # 新しいブランチのモック
+        # Mock new branch
         mock_branch = MagicMock(spec=Branch)
         mock_repo.get_branch.return_value = mock_branch
 
@@ -246,21 +244,21 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_create_branch_default_base(self, mock_get_repository):
-        """デフォルトブランチを基にしたブランチ作成のテスト"""
+        """Test for create_branch method when default base branch is specified"""
         new_branch_name = "new-branch"
         default_branch = "main"
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_repo.default_branch = default_branch
         mock_get_repository.return_value = mock_repo
 
-        # 基になるブランチリファレンスのモック
+        # Mock base branch reference
         mock_ref = MagicMock()
         mock_ref.object.sha = "base_commit_sha"
         mock_repo.get_git_ref.return_value = mock_ref
 
-        # 新しいブランチのモック
+        # Mock new branch
         mock_branch = MagicMock(spec=Branch)
         mock_repo.get_branch.return_value = mock_branch
 
@@ -272,14 +270,14 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_list_branches(self, mock_get_repository):
-        """ブランチ一覧取得のテスト"""
+        """Test for list_branches method"""
         branch_names = ["main", "develop", "feature/test"]
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # ブランチのモック
+        # Mock branches
         mock_branches = []
         for name in branch_names:
             mock_branch = MagicMock(spec=Branch)
@@ -296,17 +294,17 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_create_pull_request(self, mock_get_repository):
-        """プルリクエスト作成のテスト"""
+        """Test for create_pull_request method"""
         title = "Test PR"
         body = "This is a test PR"
         head_branch = "feature/test"
         base_branch = "main"
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # プルリクエストのモック
+        # Mock pull request
         mock_pr = MagicMock(spec=PullRequest)
         mock_repo.create_pull.return_value = mock_pr
 
@@ -322,15 +320,15 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_list_issues(self, mock_get_repository):
-        """イシュー一覧取得のテスト"""
+        """Test for list_issues method"""
         state = "open"
         labels = ["bug", "feature"]
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # イシューのモック
+        # Mock issues
         mock_issue1 = MagicMock(spec=Issue)
         mock_issue2 = MagicMock(spec=Issue)
         mock_issues = [mock_issue1, mock_issue2]
@@ -344,17 +342,17 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_create_issue(self, mock_get_repository):
-        """イシュー作成のテスト"""
+        """Test for create_issue method"""
         title = "Test Issue"
         body = "This is a test issue"
         labels = ["bug"]
         assignees = ["user1"]
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # イシューのモック
+        # Mock issue
         mock_issue = MagicMock(spec=Issue)
         mock_repo.create_issue.return_value = mock_issue
 
@@ -370,14 +368,14 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_get_repo_contents(self, mock_get_repository):
-        """リポジトリコンテンツ取得のテスト"""
+        """Test for get_repo_contents method"""
         path = "path/to/dir"
 
-        # リポジトリのモック
+        # Mock repository
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # コンテンツのモック
+        # Mock contents
         mock_content1 = MagicMock(spec=ContentFile)
         mock_content2 = MagicMock(spec=ContentFile)
         mock_contents = [mock_content1, mock_content2]
@@ -391,20 +389,19 @@ class TestGitHubClient(unittest.TestCase):
 
     @patch.object(GitHubClient, "get_repository")
     def test_get_repo_contents_single_file(self, mock_get_repository):
-        """単一ファイルのリポジトリコンテンツ取得のテスト"""
+        """Test for get_repo_contents method when single file is specified"""
         path = "path/to/file.txt"
 
-        # リポジトリのモック
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo
 
-        # 単一ファイルのコンテンツのモック
+        # Mock single file content
         mock_content = MagicMock(spec=ContentFile)
         mock_repo.get_contents.return_value = mock_content
 
         contents = self.client.get_repo_contents(self.repo_full_name, path)
 
-        self.assertEqual(contents, [mock_content])  # リストに変換されていることを確認
+        self.assertEqual(contents, [mock_content])  # Check that list is returned
         mock_get_repository.assert_called_once_with(self.repo_full_name)
         mock_repo.get_contents.assert_called_once_with(path, ref=None)
 

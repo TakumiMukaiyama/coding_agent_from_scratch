@@ -7,6 +7,8 @@ from src.agent.schema.exec_rspec_test_input import ExecRspecTestInput
 
 
 class ExecRspecTestFunction(BaseFunction):
+    """Function to execute RSpec tests"""
+
     @staticmethod
     def execute(file_or_dir_path: str) -> Dict[str, str]:
         script = f"bundle exec rspec '{file_or_dir_path}'"
@@ -30,7 +32,7 @@ class ExecRspecTestFunction(BaseFunction):
     def to_tool(cls: Type["ExecRspecTestFunction"]) -> StructuredTool:
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="指定したファイルまたはディレクトリに対してRSpecテストを実行します。",
+            description="Execute RSpec tests on the specified file or directory.",
             func=cls.execute,
             args_schema=ExecRspecTestInput,
         )

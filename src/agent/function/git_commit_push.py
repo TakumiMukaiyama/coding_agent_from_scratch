@@ -1,12 +1,13 @@
 import subprocess
 
+from langchain_core.tools import StructuredTool
+
 from src.agent.schema.git_commit_push_input import GitCommitPushInput
 from src.application.function.base import BaseFunction
-from langchain_core.tools import StructuredTool
 
 
 class GitCommitPushFunction(BaseFunction):
-    """変更をコミットしてプッシュするFunction"""
+    """Function to commit and push changes"""
 
     @staticmethod
     def execute(
@@ -16,20 +17,20 @@ class GitCommitPushFunction(BaseFunction):
         branch_name: str = "",
         force_push: bool = False,
     ) -> dict[str, str]:
-        """変更をステージングしてコミットし、リモートリポジトリにプッシュする
+        """Stage changes, commit them, and push to remote repository
 
         Args:
-            path_to_add (str, optional): addするパス. デフォルトは "." (すべての変更).
-            commit_message (str, optional): コミットメッセージ. デフォルトは空文字.
-            remote_name (str, optional): リモート名. デフォルトは "origin".
-            branch_name (str, optional): プッシュ先のブランチ名. 空の場合は現在のブランチ.
-            force_push (bool, optional): 強制プッシュするかどうか. デフォルトはFalse.
+            path_to_add (str, optional): Path to add. Default is "." (all changes).
+            commit_message (str, optional): Commit message. Default is empty string.
+            remote_name (str, optional): Remote name. Default is "origin".
+            branch_name (str, optional): Target branch name for push. If empty, uses current branch.
+            force_push (bool, optional): Whether to force push. Default is False.
 
         Returns:
-            Dict[str, str]: 実行結果
+            Dict[str, str]: Execution result
         """
         try:
-            # 現在のブランチを取得（branch_nameが空の場合に使用）
+            # Get current branch (used when branch_name is empty)
             if not branch_name:
                 branch_name = subprocess.check_output(
                     ["git", "rev-parse", "--abbrev-ref", "HEAD"],
@@ -37,25 +38,25 @@ class GitCommitPushFunction(BaseFunction):
                     text=True,
                 ).strip()
 
-            # 変更をステージングに追加
+            # Add changes to staging
             add_result = subprocess.check_output(
                 ["git", "add", path_to_add],
                 stderr=subprocess.STDOUT,
                 text=True,
             )
 
-            # コミットメッセージが空の場合はデフォルトメッセージを設定
+            # Set default message if commit message is empty
             if not commit_message:
                 commit_message = f"Update files in {path_to_add}"
 
-            # 変更をコミット
+            # Commit changes
             commit_result = subprocess.check_output(
                 ["git", "commit", "-m", commit_message],
                 stderr=subprocess.STDOUT,
                 text=True,
             )
 
-            # リモートリポジトリにプッシュ
+            # Push to remote repository
             push_command = ["git", "push"]
             if force_push:
                 push_command.append("--force")
@@ -69,7 +70,7 @@ class GitCommitPushFunction(BaseFunction):
 
             return {
                 "result": "success",
-                "message": "変更をコミットしてプッシュしました",
+                "message": "Changes committed and pushed successfully",
                 "add_result": add_result,
                 "commit_result": commit_result,
                 "push_result": push_result,
@@ -79,7 +80,7 @@ class GitCommitPushFunction(BaseFunction):
         except subprocess.CalledProcessError as e:
             return {
                 "result": "error",
-                "message": f"コミットまたはプッシュに失敗しました: {str(e)}",
+                "message": f"Failed to commit or push: {str(e)}",
                 "error": e.output,
             }
 
@@ -87,7 +88,7 @@ class GitCommitPushFunction(BaseFunction):
     def to_tool(cls: type["GitCommitPushFunction"]) -> StructuredTool:
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="変更をステージングしてコミットし、リモートリポジトリにプッシュします。",
+            description="Stage changes, commit them, and push to remote repository.",
             func=cls.execute,
             args_schema=GitCommitPushInput,
         )
