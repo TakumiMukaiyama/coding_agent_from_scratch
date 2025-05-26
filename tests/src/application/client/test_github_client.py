@@ -1,7 +1,6 @@
 import unittest
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import MagicMock, patch
 import base64
-import json
 from github import GithubException
 from github.Repository import Repository
 from github.ContentFile import ContentFile
@@ -24,7 +23,7 @@ class TestGitHubClient(unittest.TestCase):
     @patch("src.application.client.github_client.Github")
     def test_init(self, mock_github):
         """初期化のテスト"""
-        client = GitHubClient(self.access_token)
+        _ = GitHubClient(self.access_token)
         mock_github.assert_called_once_with(self.access_token)
 
     @patch.object(GitHubClient, "get_repository")

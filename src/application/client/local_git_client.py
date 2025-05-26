@@ -1,5 +1,3 @@
-import os
-import sys
 from git import Repo
 from github import GithubException
 from src.application.client.github_client import GitHubClient
