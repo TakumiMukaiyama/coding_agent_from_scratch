@@ -6,7 +6,7 @@ from src.infrastructure.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-class GitCommitPushPR:
+class LocalGitClient:
     """エージェントが編集したファイルをコミット、プッシュし、PRを作成するクラス."""
 
     def __init__(
