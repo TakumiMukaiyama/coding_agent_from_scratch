@@ -5,27 +5,25 @@ from pydantic import Field
 from src.application.schema.base import BaseInput
 
 
-# 入力スキーマの定義
+# Input schema definition
 class ProgrammerInput(BaseInput):
-    """プログラマーエージェントへの入力スキーマ"""
+    """Input schema for programmer agent"""
 
-    instruction: str = Field(description="ユーザーからの指示")
+    instruction: str = Field(description="Instructions from user")
 
     language: Optional[str] = Field(
         default="Python",
-        description="プログラミング言語（例: Python, JavaScript, TypeScript, Java, Go, Rust, Terraform等）",
+        description="Programming language (e.g., Python, JavaScript, TypeScript, Java, Go, Rust, Terraform, etc.)",
     )
 
     project_type: Optional[str] = Field(
-        default="一般的なソフトウェア開発",
-        description="プロジェクトタイプ（例: Webアプリケーション, API開発, データ分析, インフラストラクチャ管理等）",
+        default="General software development",
+        description="Project type (e.g., Web application, API development, Data analysis, Infrastructure management, etc.)",
     )
 
-    project_root: Optional[str] = Field(
-        default="src/", description="プロジェクトのルートディレクトリ"
-    )
+    project_root: Optional[str] = Field(default="src/", description="Root directory of the project")
 
     language_specific_notes: Optional[str] = Field(
         default="",
-        description="言語固有の考慮事項やベストプラクティス（自動生成される場合は空文字列）",
+        description="Language-specific considerations and best practices (empty string if auto-generated)",
     )

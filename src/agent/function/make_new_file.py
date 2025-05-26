@@ -3,12 +3,13 @@ from typing import Dict, Type
 
 from langchain_core.tools import StructuredTool
 
-from src.application.function.base import BaseFunction
 from src.agent.schema.make_new_file_input import MakeNewFileInput
+from src.application.function.base import BaseFunction
 
 
 class MakeNewFileFunction(BaseFunction):
     """Function to create a new file"""
+
     @staticmethod
     def execute(filepath: str, file_contents: str) -> Dict[str, str]:
         directory = os.path.dirname(filepath)
@@ -24,7 +25,7 @@ class MakeNewFileFunction(BaseFunction):
     def to_tool(cls: Type["MakeNewFileFunction"]) -> StructuredTool:
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="新しいファイルを作成し、指定された内容で書き込みます。",
+            description="Creates a new file and writes the specified content to it.",
             func=cls.execute,
             args_schema=MakeNewFileInput,
         )

@@ -4,4 +4,4 @@ from src.application.schema.base import BaseInput
 
 
 class ReadFileInput(BaseInput):
-    filepath: str = Field(..., description="読み取る対象ファイルのパス")
+    filepath: str = Field(..., description="Path to the target file to read")
