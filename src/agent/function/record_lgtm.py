@@ -1,3 +1,4 @@
+import threading
 from typing import Dict, Type
 
 from langchain_core.tools import StructuredTool
@@ -11,8 +12,8 @@ class RecordLgtmFunction(BaseFunction):
     LGTM（Looks Good To Me）を記録するためのツール
     """
 
-    # クラス変数として状態を管理
-    _lgtm_status = False
+    # スレッドローカルストレージで状態を管理（スレッドセーフ）
+    _thread_local = threading.local()
 
     def __init__(self):
         """初期化時にLGTM状態をリセットする"""
@@ -21,17 +22,17 @@ class RecordLgtmFunction(BaseFunction):
     @classmethod
     def lgtm(cls) -> bool:
         """現在のLGTM状態を返す"""
-        return cls._lgtm_status
+        return getattr(cls._thread_local, "lgtm_status", False)
 
     @classmethod
     def reset_lgtm(cls) -> None:
         """LGTM状態をリセットする"""
-        cls._lgtm_status = False
+        cls._thread_local.lgtm_status = False
 
     @staticmethod
     def execute(**kwargs) -> Dict[str, str]:
         """LGTM状態をTrueに設定する"""
-        RecordLgtmFunction._lgtm_status = True
+        RecordLgtmFunction._thread_local.lgtm_status = True
         return {"result": "LGTMを記録しました"}
 
     @classmethod

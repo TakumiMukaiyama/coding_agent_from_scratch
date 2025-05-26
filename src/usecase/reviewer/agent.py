@@ -1,8 +1,3 @@
-from src.agent.function.record_lgtm import RecordLgtmFunction
-from src.agent.function.review_code_function import ReviewCodeFunction
-from src.agent.schema.reviewer_input import ReviewerInput
-from src.agent.schema.reviewer_output import ReviewerOutput
-from src.application.client.llm.azure_openai_client import AzureOpenAIClient
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.messages import SystemMessage
 from langchain_core.prompts import (
@@ -11,6 +6,12 @@ from langchain_core.prompts import (
     MessagesPlaceholder,
 )
 from langchain_core.tools import BaseTool
+
+from src.agent.function.record_lgtm import RecordLgtmFunction
+from src.agent.function.review_code_function import ReviewCodeFunction
+from src.agent.schema.reviewer_input import ReviewerInput
+from src.agent.schema.reviewer_output import ReviewerOutput
+from src.application.client.llm.azure_openai_client import AzureOpenAIClient
 
 
 class ReviewerAgent:
@@ -39,7 +40,12 @@ class ReviewerAgent:
                 SystemMessage(
                     content="""あなたはプロフェッショナルなレビュワーです。
 コード差分を精査し、問題点や改善点を指摘してください。
-また、terraform/snowflake/environments/配下のファイルに差分がない場合、LGTMをつけずにtfファイルを編集するようにやり直しさせてください。
+以下の観点でレビューを行ってください：
+- コードの品質（可読性、保守性、パフォーマンス）
+- セキュリティ上の問題
+- ベストプラクティスの遵守
+- バグの可能性
+- 設計上の問題
 適切であればLGTM (Looks Good To Me) を記録してください。""",
                 ),
                 MessagesPlaceholder(variable_name="chat_history", optional=True),
@@ -54,9 +60,7 @@ class ReviewerAgent:
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(
-            agent=agent, tools=self.tools, max_iterations=30, verbose=True
-        )
+        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
 
     def run(self, reviewer_input: ReviewerInput) -> ReviewerOutput:
         """コードレビューを実行する.
@@ -71,16 +75,15 @@ class ReviewerAgent:
         RecordLgtmFunction.reset_lgtm()
         input_text = f"""
             コードレビューを行ってください。
-            また、terraform/snowflake/environments/配下のファイルに差分がない場合、LGTMをつけずにtfファイルを編集するようにやり直しさせてください。
+            コードの品質、セキュリティ、ベストプラクティスの観点から詳細にレビューし、
+            問題点や改善点があれば具体的に指摘してください。
             
             差分:
             {reviewer_input.diff}
             
             """
         if reviewer_input.programmer_comment:
-            input_text += (
-                f"\n\nプログラマーからのコメント:\n{reviewer_input.programmer_comment}"
-            )
+            input_text += f"\n\nプログラマーからのコメント:\n{reviewer_input.programmer_comment}"
 
         agent_result = self.agent_executor.invoke({"input": input_text})
         output_text = agent_result["output"]

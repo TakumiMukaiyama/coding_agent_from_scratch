@@ -1,18 +1,15 @@
 import os
 import subprocess
 
-from src.agent.function.generate_pr_params import GeneratePullRequestParamsFunction
+from langchain.schema import HumanMessage
+from langchain_core.prompts import PromptTemplate
+
 from src.agent.schema.reviewer_input import ReviewerInput
 from src.agent.schema.reviewer_output import ReviewerOutput
-from src.application.client.github_client import GitHubClient
 from src.application.client.llm.azure_openai_client import AzureOpenAIClient
-from src.application.client.local_git_client import LocalGitClient  
 from src.infrastructure.utils.logger import get_logger
 from src.usecase.programmer.agent import ProgrammerAgent
 from src.usecase.reviewer.agent import ReviewerAgent
-from github import GithubException
-from langchain.schema import HumanMessage
-from langchain_core.prompts import PromptTemplate
 
 logger = get_logger(__name__)
 
@@ -28,12 +25,8 @@ class AgentCoordinator:
         self.working_branch = None
         self.llm_client = AzureOpenAIClient()
         self.chat_llm = self.llm_client.initialize_chat()
-        self.github_client = GitHubClient(os.environ["GITHUB_TOKEN"])
         self.repo_path = os.getcwd()  # カレントディレクトリをリポジトリパスとして使用
-        self.repo_full_name = "xxxxxxx"
-        self.git_client = LocalGitClient(
-            self.repo_path, os.environ["GITHUB_TOKEN"], self.repo_full_name, os.environ["GITHUB_USERNAME"]
-        )
+        self.repo_full_name = "coding_agent_from_scratch"
 
     def generate_branch_name(self, instruction: str) -> str:
         """指示内容からGitブランチ名を生成します.
@@ -117,11 +110,16 @@ class AgentCoordinator:
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-        # 現在の差分を取得
+        # 現在のローカル差分を取得（HEADとワーキングディレクトリの比較）
+        logger.info(f"ローカル差分を取得中: working_branch={self.working_branch}")
         diff = self.programmer_agent.get_diff(
-            file_path=self.snowflake_tf_dir_path,
+            base_branch=self.base_branch,
         )
-        logger.info(f"diff: {diff}")
+        logger.info(f"取得した差分の長さ: {len(diff)} 文字")
+        if diff:
+            logger.info(f"差分の先頭100文字: {diff[:100]}...")
+        else:
+            logger.warning("差分が空です")
 
         # レビュアーエージェントを実行
         reviewer_input = ReviewerInput(
@@ -149,7 +147,6 @@ class AgentCoordinator:
 
         Raises:
             ValueError: 作業用ブランチが設定されていない、または差分がない場合
-            GitHubException: GitHub関連の操作に失敗した場合
         """
         programmer_output = None
         reviewer_output = None
@@ -171,27 +168,26 @@ class AgentCoordinator:
 
                 programmer_output = self.run_programmer(
                     instruction,
-                    reviewer_comment=reviewer_output.summary
-                    if reviewer_output
-                    else None,
+                    reviewer_comment=reviewer_output.summary if reviewer_output else None,
                 )
                 logger.info(f"プログラマー出力: {programmer_output[:100]}...")
 
                 reviewer_output = self.run_reviewer(
-                    programmer_comment=f"開発サイクル {i + 1} の実装が完了しました。差分がない場合LGTMしないでください。"
+                    programmer_comment=f"開発サイクル {i + 1} の実装が完了しました。レビューをお願いします。"
                 )
                 logger.info(f"レビュアー出力: {reviewer_output.summary[:100]}...")
 
                 if reviewer_output.lgtm:
-                    logger.info(
-                        "レビュー承認 (LGTM) が得られました。サイクルを終了します。"
-                    )
+                    logger.info("レビュー承認 (LGTM) が得られました。サイクルを終了します。")
                     break
 
             # 差分の確認と処理
-            diff = self.programmer_agent.get_diff(file_path=self.snowflake_tf_dir_path)
+            diff = self.programmer_agent.get_diff(
+                base_branch=self.base_branch,
+            )
             if not diff:
-                raise ValueError("差分がありません。プルリクエストを作成できません。")
+                logger.warning("ローカルに差分がありません。プルリクエストを作成できません。")
+                exit(1)
 
             try:
                 diff_output = subprocess.check_output(
@@ -201,7 +197,7 @@ class AgentCoordinator:
                         "--name-only",
                         "HEAD",
                         "--",
-                        self.snowflake_tf_dir_path,
+                        self.repo_path,
                     ],
                     stderr=subprocess.STDOUT,
                     text=True,
@@ -210,85 +206,10 @@ class AgentCoordinator:
                 logger.error(f"git diffコマンドの実行に失敗しました: {e}")
                 raise
 
-            # ブランチの作成とファイルの更新
-            _ = self.github_client.create_branch(
-                repo_full_name=self.repo_full_name,
-                new_branch_name=self.working_branch,
-                base_branch=self.base_branch,
-            )
-
-            for file_path in diff_output.splitlines():
-                try:
-                    with open(file_path, "r", encoding="utf-8") as file:
-                        content = file.read()
-                    logger.debug(
-                        f"ファイル {file_path} の内容を読み込みました（先頭100文字）: {content[:100]}"
-                    )
-
-                    self.github_client.update_file(
-                        repo_full_name=self.repo_full_name,
-                        file_path=file_path,
-                        content=content,
-                        branch=self.working_branch,
-                        commit_message="auto: generated Terraform configuration by branch-agent",
-                    )
-                except FileNotFoundError:
-                    logger.error(f"ファイルが見つかりません: {file_path}")
-                    raise
-                except Exception as e:
-                    logger.error(f"ファイル {file_path} の更新に失敗しました: {e}")
-                    raise
-
-            # PRの作成
-            pr_params = GeneratePullRequestParamsFunction.execute(
-                instruction=instruction,
-                programmer_output=programmer_output,
-                diff=diff,
-            )
-
-            try:
-                pr = self.github_client.create_pull_request(
-                    repo_full_name=self.repo_full_name,
-                    title=pr_params["pr_title"],
-                    body=pr_params["pr_description"],
-                    head_branch=self.working_branch,
-                    base_branch=self.base_branch,
-                )
-                pr_url = self.github_client.create_pr_link(
-                    self.repo_full_name, pr.number
-                )
-                logger.info(
-                    f"プルリクエストを作成しました: #{pr.number}, URL: {pr_url}"
-                )
-            except GithubException as e:
-                if "already exists" in str(e.data):
-                    repo = self.github_client.get_repository(self.repo_full_name)
-                    prs = list(
-                        repo.get_pulls(state="open", head=f"{self.working_branch}")
-                    )
-
-                    if not prs:
-                        raise ValueError(
-                            "既存のPRが存在するとエラーが表示されましたが、見つかりませんでした"
-                        )
-
-                    existing_pr = prs[0]
-                    logger.info(
-                        f"既存のPRが見つかりました: #{existing_pr.number}, URL: {existing_pr.html_url}"
-                    )
-                    pr = existing_pr
-                    pr_url = existing_pr.html_url
-                else:
-                    raise
-
             return {
                 "programmer_output": programmer_output,
                 "reviewer_output": reviewer_output.summary if reviewer_output else None,
                 "branch_name": self.working_branch,
-                "pr_title": pr_params["pr_title"],
-                "pr_description": pr_params["pr_description"],
-                "pr_number": pr.number,
-                "pr_url": pr_url,
             }
 
         except Exception as e:
