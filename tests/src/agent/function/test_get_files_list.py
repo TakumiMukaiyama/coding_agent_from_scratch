@@ -17,8 +17,8 @@ class TestGetFilesListFunction(unittest.TestCase):
         """execute メソッドのテスト"""
         # モックの設定
         mock_glob.side_effect = lambda pattern, recursive: {
-            "**/*.rb": ["file1.rb", "dir/file2.rb"],
-            "**/*.yml": ["config.yml", "dir/settings.yml"],
+            "**/*.md": ["file1.md", "dir/file2.md"],
+            "**/*.tf": ["config.tf", "dir/settings.tf"],
         }[pattern]
 
         # テスト実行
@@ -26,16 +26,16 @@ class TestGetFilesListFunction(unittest.TestCase):
 
         # 検証
         self.assertEqual(mock_glob.call_count, 2)
-        mock_glob.assert_any_call("**/*.rb", recursive=True)
-        mock_glob.assert_any_call("**/*.yml", recursive=True)
+        mock_glob.assert_any_call("**/*.md", recursive=True)
+        mock_glob.assert_any_call("**/*.tf", recursive=True)
         self.assertEqual(
             result,
             {
                 "files_list": [
-                    "file1.rb",
-                    "dir/file2.rb",
-                    "config.yml",
-                    "dir/settings.yml",
+                    "file1.md",
+                    "dir/file2.md",
+                    "config.tf",
+                    "dir/settings.tf",
                 ]
             },
         )
@@ -57,7 +57,7 @@ class TestGetFilesListFunction(unittest.TestCase):
         # 検証
         mock_from_function.assert_called_once_with(
             name="get_files_list_function",
-            description="プロジェクト配下の.pyファイルおよび.ymlファイル一覧を取得します。",
+            description="プロジェクト配下の.mdファイルおよび.tfファイル一覧を取得します。",
             func=GetFilesListFunction.execute,
             args_schema=GetFilesListInput,
         )
