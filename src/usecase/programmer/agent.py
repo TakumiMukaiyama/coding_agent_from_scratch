@@ -40,9 +40,7 @@ class ProgrammerAgent:
         self.chain = self._initialize_chain()
         self.tools = self._initialize_tools()
 
-        self.agent_executor: AgentExecutor = self._initialize_executor(
-            default_project_root
-        )
+        self.agent_executor: AgentExecutor = self._initialize_executor(default_project_root)
 
     def _initialize_chain(self) -> PydanticChain:
         return PydanticChain(
@@ -69,7 +67,7 @@ class ProgrammerAgent:
         ]
 
     def _initialize_executor(self, project_root: str) -> AgentExecutor:
-        # プロジェクトルートに応じてシステムメッセージを生成
+        # Generate system message according to project root
         system_message = AGENT_SYSTEM_MESSAGE.format(project_root=project_root)
 
         prompt = ChatPromptTemplate.from_messages(
@@ -86,21 +84,19 @@ class ProgrammerAgent:
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(
-            agent=agent, tools=self.tools, max_iterations=30, verbose=True
-        )
+        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
 
     def _prepare_input(self, programmer_input: ProgrammerInput) -> ProgrammerInput:
         """
-        入力を前処理して、言語固有の注意事項を自動生成する
+        Preprocess input and automatically generate language-specific notes
 
         Args:
-            programmer_input: 元の入力
+            programmer_input: Original input
 
         Returns:
-            前処理済みの入力
+            Preprocessed input
         """
-        # 言語固有の注意事項が空の場合、自動生成する
+        # If language-specific notes are empty, automatically generate them
         if not programmer_input.language_specific_notes:
             language_config = get_language_config(programmer_input.language)
             programmer_input.language_specific_notes = language_config.get("notes", "")
@@ -109,41 +105,37 @@ class ProgrammerAgent:
 
     def execute(self, programmer_input: ProgrammerInput):
         """
-        プログラマーエージェントを実行する
+        Execute the programmer agent
 
         Args:
-            programmer_input: プログラマーへの入力
+            programmer_input: Input to the programmer
 
         Returns:
-            実行結果
+            Execution result
         """
-        # 入力を前処理
+        # Preprocess input
         processed_input = self._prepare_input(programmer_input)
 
-        # プロジェクトルートが変更された場合、エージェントを再初期化
+        # Reinitialize agent if project root has changed
         if processed_input.project_root != self.default_project_root:
-            self.agent_executor = self._initialize_executor(
-                processed_input.project_root
-            )
+            self.agent_executor = self._initialize_executor(processed_input.project_root)
             self.default_project_root = processed_input.project_root
 
-        # エージェントを実行
+        # Execute agent
         return self.agent_executor.invoke({"input": processed_input.instruction})
 
     def run(self, instruction: str, reviewer_comment: str | None = None) -> str:
-        """プログラマーエージェントを実行する.
+        """Execute the programmer agent.
 
         Args:
-            instruction (str): プログラマーの指示
-            reviewer_comment (str | None): レビューからのフィードバック
+            instruction (str): Instruction to the programmer
+            reviewer_comment (str | None): Feedback from review
 
         Returns:
-            str: プログラマーの出力
+            str: Programmer's output
         """
         if reviewer_comment:
-            input_text = (
-                f"{instruction}\n\n[Reviewerからのフィードバック]:\n{reviewer_comment}"
-            )
+            input_text = f"{instruction}\n\n[Feedback from Reviewer]:\n{reviewer_comment}"
         else:
             input_text = instruction
 
@@ -156,21 +148,19 @@ class ProgrammerAgent:
         target_branch: str | None = None,
         file_path: str | None = None,
     ) -> str:
-        """現在の変更についてdiffを取得する.
+        """Get diff for current changes.
 
         Args:
-            base_branch (str, optional): 比較元のブランチ名. デフォルトは None.
-            target_branch (str | None, optional): 比較先のブランチ名. デフォルトは None (現在のブランチ).
+            base_branch (str, optional): Source branch name for comparison. Defaults to None.
+            target_branch (str | None, optional): Target branch name for comparison. Defaults to None (current branch).
 
         Returns:
-            str: 生成されたdiff
+            str: Generated diff
         """
         diff_function = GenerateDiffFunction()
-        result = diff_function.execute(
-            base_branch=base_branch, target_branch=target_branch, file_path=file_path
-        )
+        result = diff_function.execute(base_branch=base_branch, target_branch=target_branch, file_path=file_path)
 
         if result["result"] == "error":
-            return f"diff取得エラー: {result['message']}"
+            return f"Diff retrieval error: {result['message']}"
 
         return result["diff"]

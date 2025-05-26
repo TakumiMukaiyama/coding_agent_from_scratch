@@ -15,64 +15,64 @@ logger = get_logger(__name__)
 
 
 class AgentCoordinator:
-    """ProgrammerAgentとReviewerAgentの連携を行うコーディネーター."""
+    """Coordinator that manages collaboration between ProgrammerAgent and ReviewerAgent."""
 
     def __init__(self):
-        """コンストラクタ."""
+        """Constructor."""
         self.programmer_agent = ProgrammerAgent()
         self.reviewer_agent = ReviewerAgent()
         self.base_branch = "main"
         self.working_branch = None
         self.llm_client = AzureOpenAIClient()
         self.chat_llm = self.llm_client.initialize_chat()
-        self.repo_path = os.getcwd()  # カレントディレクトリをリポジトリパスとして使用
+        self.repo_path = os.getcwd()  # Use current directory as repository path
         self.repo_full_name = "coding_agent_from_scratch"
 
     def generate_branch_name(self, instruction: str) -> str:
-        """指示内容からGitブランチ名を生成します.
+        """Generate Git branch name from instruction content.
 
         Args:
-            instruction (str): プログラマーへの指示
+            instruction (str): Instruction to the programmer
 
         Returns:
-            str: 生成されたブランチ名
+            str: Generated branch name
         """
         prompt = PromptTemplate.from_template(
             """
-あなたはGitのブランチ命名の専門家です。
-以下の指示内容から、適切なGitブランチ名を生成してください。
+You are a Git branch naming expert.
+Please generate an appropriate Git branch name from the following instruction content.
 
-ブランチ名のルール:
-1. 'feature/', 'bugfix/', 'refactor/' などの適切なプレフィックスを使用する
-2. 英語の小文字、数字、ハイフン(-)のみを使用する（スペースや特殊文字は使用しない）
-3. 簡潔で、内容を表す名前にする
-4. 単語の区切りにはハイフンを使用する
-5. 最大50文字以内にする
+Branch naming rules:
+1. Use appropriate prefixes like 'feature/', 'bugfix/', 'refactor/', etc.
+2. Use only lowercase English letters, numbers, and hyphens (-) (no spaces or special characters)
+3. Make it concise and descriptive of the content
+4. Use hyphens to separate words
+5. Keep it within 50 characters
 
-指示内容:
+Instruction content:
 {instruction}
 
-出力する形式:
-ブランチ名のみを出力してください。説明や前後のテキストは不要です。
+Output format:
+Output only the branch name. No explanation or surrounding text needed.
             """,
         )
 
         message = [HumanMessage(content=prompt.format(instruction=instruction))]
         result = self.chat_llm.invoke(message)
 
-        # 余分な空白や改行を削除して整形
+        # Remove extra whitespace and newlines for formatting
         branch_name = result.content.strip()
 
         return branch_name
 
     def create_working_branch(self, branch_name: str) -> str:
-        """作業用ブランチを作成します.
+        """Create a working branch.
 
         Args:
-            branch_name (str): 作成するブランチ名
+            branch_name (str): Name of the branch to create
 
         Returns:
-            str: 作成・切替結果のメッセージ
+            str: Message about creation/switching result
         """
         from src.agent.function.create_branch import CreateBranchFunction
 
@@ -85,43 +85,43 @@ class AgentCoordinator:
         return result["message"]
 
     def run_programmer(self, instruction: str, reviewer_comment: str = None) -> str:
-        """プログラマーエージェントを実行します.
+        """Execute the programmer agent.
 
         Args:
-            instruction (str): プログラマーへの指示
-            reviewer_comment (str, optional): レビュアーからのコメント. デフォルトは None.
+            instruction (str): Instruction to the programmer
+            reviewer_comment (str, optional): Comment from reviewer. Defaults to None.
 
         Returns:
-            str: プログラマーの出力
+            str: Programmer's output
         """
         return self.programmer_agent.run(instruction, reviewer_comment)
 
     def run_reviewer(self, programmer_comment: str = None) -> ReviewerOutput:
-        """レビュアーエージェントを実行します.
+        """Execute the reviewer agent.
 
         Args:
-            programmer_comment (str, optional): プログラマーからのコメント. デフォルトは None.
+            programmer_comment (str, optional): Comment from programmer. Defaults to None.
 
         Returns:
-            ReviewerOutput: レビュー結果
+            ReviewerOutput: Review result
         """
         if not self.working_branch:
-            error_msg = "作業用ブランチが設定されていません。create_working_branch()を先に実行してください."
+            error_msg = "Working branch is not set. Please run create_working_branch() first."
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-        # 現在のローカル差分を取得（HEADとワーキングディレクトリの比較）
-        logger.info(f"ローカル差分を取得中: working_branch={self.working_branch}")
+        # Get current local diff (comparison between HEAD and working directory)
+        logger.info(f"Getting local diff: working_branch={self.working_branch}")
         diff = self.programmer_agent.get_diff(
             base_branch=self.base_branch,
         )
-        logger.info(f"取得した差分の長さ: {len(diff)} 文字")
+        logger.info(f"Retrieved diff length: {len(diff)} characters")
         if diff:
-            logger.info(f"差分の先頭100文字: {diff[:100]}...")
+            logger.info(f"First 100 characters of diff: {diff[:100]}...")
         else:
-            logger.warning("差分が空です")
+            logger.warning("Diff is empty")
 
-        # レビュアーエージェントを実行
+        # Execute reviewer agent
         reviewer_input = ReviewerInput(
             diff=diff,
             programmer_comment=programmer_comment,
@@ -135,64 +135,58 @@ class AgentCoordinator:
         max_iterations: int = 3,
         auto_create_branch: bool = True,
     ) -> dict:
-        """プログラマーとレビュアーのサイクルを実行します.
+        """Execute the programmer and reviewer cycle.
 
         Args:
-            instruction (str): プログラマーへの初期指示
-            max_iterations (int, optional): 最大反復回数. デフォルトは 3.
-            auto_create_branch (bool, optional): 自動的にブランチを生成・作成するかどうか. デフォルトは True.
+            instruction (str): Initial instruction to the programmer
+            max_iterations (int, optional): Maximum number of iterations. Defaults to 3.
+            auto_create_branch (bool, optional): Whether to automatically generate and create branch. Defaults to True.
 
         Returns:
-            dict: 開発サイクルの実行結果
+            dict: Execution result of the development cycle
 
         Raises:
-            ValueError: 作業用ブランチが設定されていない、または差分がない場合
+            ValueError: When working branch is not set or there is no diff
         """
         programmer_output = None
         reviewer_output = None
 
         try:
-            # 作業用ブランチの自動生成・作成
+            # Automatic generation and creation of working branch
             if auto_create_branch and not self.working_branch:
                 self.working_branch = self.generate_branch_name(instruction)
-                logger.info(f"ブランチ名を生成しました: {self.working_branch}")
+                logger.info(f"Generated branch name: {self.working_branch}")
 
             if not self.working_branch:
                 raise ValueError(
-                    "ブランチ名が設定されていません。create_working_branch()を先に実行するか、auto_create_branch=Trueを指定してください。"
+                    "Branch name is not set. Please run create_working_branch() first or specify auto_create_branch=True."
                 )
 
-            # 開発サイクルの実行
+            # Execute development cycle
             for i in range(max_iterations):
-                logger.info(f"=== 開発サイクル {i + 1}/{max_iterations} ===")
+                logger.info(f"=== Development cycle {i + 1}/{max_iterations} ===")
 
                 programmer_output = self.run_programmer(
                     instruction,
-                    reviewer_comment=reviewer_output.summary
-                    if reviewer_output
-                    else None,
+                    reviewer_comment=reviewer_output.summary if reviewer_output else None,
                 )
-                logger.info(f"プログラマー出力: {programmer_output[:100]}...")
+                logger.info(f"Programmer output: {programmer_output[:100]}...")
 
                 reviewer_output = self.run_reviewer(
-                    programmer_comment=f"開発サイクル {i + 1} の実装が完了しました。レビューをお願いします。"
+                    programmer_comment=f"Implementation for development cycle {i + 1} is completed. Please review."
                 )
-                logger.info(f"レビュアー出力: {reviewer_output.summary[:100]}...")
+                logger.info(f"Reviewer output: {reviewer_output.summary[:100]}...")
 
                 if reviewer_output.lgtm:
-                    logger.info(
-                        "レビュー承認 (LGTM) が得られました。サイクルを終了します。"
-                    )
+                    logger.info("Review approval (LGTM) obtained. Ending the cycle.")
                     break
 
-            # 差分の確認と処理
+            # Check and process diff
             diff = self.programmer_agent.get_diff(
                 base_branch=self.base_branch,
             )
             if not diff:
-                logger.warning(
-                    "ローカルに差分がありません。プルリクエストを作成できません。"
-                )
+                logger.warning("No local diff found. Cannot create pull request.")
                 exit(1)
 
             try:
@@ -209,7 +203,7 @@ class AgentCoordinator:
                     text=True,
                 )
             except subprocess.CalledProcessError as e:
-                logger.error(f"git diffコマンドの実行に失敗しました: {e}")
+                logger.error(f"Failed to execute git diff command: {e}")
                 raise
 
             return {
@@ -219,5 +213,5 @@ class AgentCoordinator:
             }
 
         except Exception as e:
-            logger.exception(f"開発サイクルの実行中にエラーが発生しました: {e}")
+            logger.exception(f"Error occurred during development cycle execution: {e}")
             raise

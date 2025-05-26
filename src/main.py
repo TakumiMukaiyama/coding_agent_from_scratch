@@ -10,33 +10,31 @@ load_dotenv()
 
 logger = get_logger(__name__)
 
-app = typer.Typer(help="エージェント実行CLI")
+app = typer.Typer(help="Agent execution CLI")
 
 
 @app.command()
 def coordinator(
-    instruction: str = typer.Argument(..., help="プログラマーエージェントへの指示内容"),
+    instruction: str = typer.Argument(..., help="Instruction content for programmer agent"),
 ):
-    """Programmerエージェントを実行します."""
+    """Execute Programmer agent."""
     try:
         agent = AgentCoordinator()
         max_iterations = 3
         auto_create_branch = True
         prompt = """
-        generated_codeディレクトリ配下でファイルの作成、編集を行なってください。
-        コードの生成ルールは src/agent/rules/coding_rule.md を参照し、厳守してください。
-        ※ 実行確認は不要です。ファイルの編集を行なってください
+        Please create and edit files under the generated_code directory.
+        Refer to and strictly follow the code generation rules in src/agent/rules/coding_rule.md.
+        ※ Execution confirmation is not required. Please edit the files.
         """
         instruction = f"{prompt}\n{instruction}"
 
-        result = agent.development_cycle(
-            instruction, max_iterations, auto_create_branch
-        )
+        result = agent.development_cycle(instruction, max_iterations, auto_create_branch)
 
-        logger.info("コードの生成が完了しました")
+        logger.info("Code generation completed")
 
     except Exception:
-        logger.exception("エラーが発生しました")
+        logger.exception("An error occurred")
         sys.exit(1)
 
 

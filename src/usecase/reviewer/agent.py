@@ -7,19 +7,19 @@ from langchain_core.prompts import (
 )
 from langchain_core.tools import BaseTool
 
-from src.infrastructure.utils.logger import get_logger
 from src.agent.function.record_lgtm import RecordLgtmFunction
 from src.agent.function.review_code_function import ReviewCodeFunction
 from src.agent.schema.reviewer_input import ReviewerInput
 from src.agent.schema.reviewer_output import ReviewerOutput
 from src.application.client.llm.azure_openai_client import AzureOpenAIClient
+from src.infrastructure.utils.logger import get_logger
 
 
 class ReviewerAgent:
-    """コードレビューを実行するエージェント."""
+    """Agent that performs code reviews."""
 
     def __init__(self) -> None:
-        """コンストラクタ.
+        """Constructor.
 
         Args:
             llm_client (AzureOpenAIClient): AzureOpenAIClient
@@ -39,17 +39,17 @@ class ReviewerAgent:
         prompt = ChatPromptTemplate.from_messages(
             [
                 SystemMessage(
-                    content="""あなたはプロフェッショナルなレビュワーです。
-コード差分を精査し、問題点や改善点を指摘してください。
-以下の観点でレビューを行ってください：
-- コードの品質（可読性、保守性、パフォーマンス）
-- セキュリティ上の問題
-- ベストプラクティスの遵守
-- バグの可能性
-- 設計上の問題
+                    content="""You are a professional reviewer.
+Please carefully examine the code diff and point out any issues or improvements.
+Please review from the following perspectives:
+- Code quality (readability, maintainability, performance)
+- Security issues
+- Best practice compliance
+- Potential bugs
+- Design issues
 
-重要：レビューの結果、コードに問題がなく承認できる場合は、必ずrecord_lgtm_functionツールを呼び出してLGTM (Looks Good To Me) を記録してください。
-問題がある場合は、具体的な改善点を指摘してください。""",
+Important: If the review result shows no issues and the code can be approved, you must call the record_lgtm_function tool to record LGTM (Looks Good To Me).
+If there are issues, please point out specific improvements.""",
                 ),
                 MessagesPlaceholder(variable_name="chat_history", optional=True),
                 HumanMessagePromptTemplate.from_template("{input}"),
@@ -57,44 +57,40 @@ class ReviewerAgent:
             ],
         )
 
-        # o3-miniモデルとの互換性のために、create_openai_tools_agentを使用
+        # Use create_openai_tools_agent for compatibility with o3-mini model
         agent = create_openai_tools_agent(
             llm=self.chat_llm,
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(
-            agent=agent, tools=self.tools, max_iterations=30, verbose=True
-        )
+        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
 
     def run(self, reviewer_input: ReviewerInput) -> ReviewerOutput:
-        """コードレビューを実行する.
+        """Execute code review.
 
         Args:
-            reviewer_input (ReviewerInput): レビュー入力
+            reviewer_input (ReviewerInput): Review input
 
         Returns:
-            ReviewerOutput: レビュー出力
+            ReviewerOutput: Review output
         """
-        # LGTM状態をリセット
+        # Reset LGTM status
         RecordLgtmFunction.reset_lgtm()
         input_text = f"""
-            コードレビューを行ってください。
-            コードの品質、セキュリティ、ベストプラクティスの観点から詳細にレビューし、
-            問題点や改善点があれば具体的に指摘してください。
+            Please perform a code review.
+            Review in detail from the perspectives of code quality, security, and best practices,
+            and point out specific issues or improvements if any.
             
-            レビュー完了後：
-            - コードに問題がなく承認できる場合：必ずrecord_lgtm_functionツールを呼び出してください
-            - 問題がある場合：具体的な改善点を指摘してください
+            After review completion:
+            - If the code has no issues and can be approved: Please call the record_lgtm_function tool
+            - If there are issues: Please point out specific improvements
             
-            差分:
+            Diff:
             {reviewer_input.diff}
             
             """
         if reviewer_input.programmer_comment:
-            input_text += (
-                f"\n\nプログラマーからのコメント:\n{reviewer_input.programmer_comment}"
-            )
+            input_text += f"\n\nComment from programmer:\n{reviewer_input.programmer_comment}"
 
         agent_result = self.agent_executor.invoke({"input": input_text})
         output_text = agent_result["output"]
@@ -106,17 +102,16 @@ class ReviewerAgent:
 
         lgtm_flag = RecordLgtmFunction.lgtm()
 
-        # デバッグ用ログ
-
+        # Debug logs
         logger = get_logger(__name__)
-        logger.info(f"レビュー完了 - LGTM状態: {lgtm_flag}")
+        logger.info(f"Review completed - LGTM status: {lgtm_flag}")
         if lgtm_flag:
-            logger.info("LGTMツールが正常に呼び出されました")
+            logger.info("LGTM tool was called successfully")
         else:
-            logger.warning("LGTMツールが呼び出されていません")
+            logger.warning("LGTM tool was not called")
 
         return ReviewerOutput(
             summary=summary,
-            suggestions=[],  # あとでstructured出力できる
+            suggestions=[],  # Can be structured output later
             lgtm=lgtm_flag,
         )
