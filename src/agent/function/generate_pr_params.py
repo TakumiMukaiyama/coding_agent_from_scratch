@@ -59,7 +59,9 @@ Output only the title. No explanation or surrounding text is needed.
                 HumanMessage(
                     content=title_prompt.format(
                         instruction=instruction,
-                        programmer_output=programmer_output[:500] if programmer_output else "No output",
+                        programmer_output=programmer_output[:500]
+                        if programmer_output
+                        else "No output",
                     )
                 )
             ]
@@ -98,7 +100,9 @@ Output the description in markdown format.
                 HumanMessage(
                     content=description_prompt.format(
                         instruction=instruction,
-                        programmer_output=programmer_output[:500] if programmer_output else "No output",
+                        programmer_output=programmer_output[:500]
+                        if programmer_output
+                        else "No output",
                         diff=diff[:1000] if diff else "No diff",
                     )
                 )

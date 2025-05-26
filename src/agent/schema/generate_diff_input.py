@@ -9,7 +9,8 @@ class GenerateDiffInput(BaseInput):
         default="main", description="Name of the base branch (default is main)"
     )
     target_branch: str | None = Field(
-        default=None, description="Name of the target branch (default is current branch)"
+        default=None,
+        description="Name of the target branch (default is current branch)",
     )
     file_path: str | None = Field(
         default=None, description="Specific file path (if not specified, all files)"

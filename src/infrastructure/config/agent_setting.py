@@ -4,7 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AgentSettings(BaseSettings):
-    """Settings for agent"""    
+    """Settings for agent"""
+
     AZURE_OPENAI_API_KEY: str = ""
     AZURE_OPENAI_API_VERSION: str = ""
     AZURE_OPENAI_API_ENDPOINT: str = ""

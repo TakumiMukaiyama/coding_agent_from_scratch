@@ -33,7 +33,10 @@ class CreateBranchFunction(BaseFunction):
                 stderr=subprocess.STDOUT,
                 text=True,
             )
-            branch_list = [line.strip().lstrip("* ").strip() for line in all_branches_output.splitlines()]
+            branch_list = [
+                line.strip().lstrip("* ").strip()
+                for line in all_branches_output.splitlines()
+            ]
 
             if branch_name in branch_list:
                 # If it already exists, checkout to it

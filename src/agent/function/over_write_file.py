@@ -8,6 +8,7 @@ from src.application.function.base import BaseFunction
 
 class OverwriteFileFunction(BaseFunction):
     """Function to overwrite a file"""
+
     @staticmethod
     def execute(filepath: str, new_text: str) -> Dict[str, str]:
         with open(filepath, "w", encoding="utf-8") as f:

@@ -15,7 +15,9 @@ class ReviewCodeFunction(BaseFunction):
 
         This only returns a stub response without raising exceptions.
         """
-        return {"message": "Handled by LLM FunctionCalling. No real processing done here."}
+        return {
+            "message": "Handled by LLM FunctionCalling. No real processing done here."
+        }
 
     @classmethod
     def to_tool(cls: type["ReviewCodeFunction"]) -> StructuredTool:

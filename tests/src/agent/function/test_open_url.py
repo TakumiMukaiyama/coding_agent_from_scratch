@@ -100,7 +100,9 @@ class TestOpenUrlFunction(unittest.TestCase):
         # Set up mock
         mock_tool = MagicMock()
         mock_tool.name = "open_url_function"
-        mock_tool.description = "Open the specified URL, get the page content, and summarize it."
+        mock_tool.description = (
+            "Open the specified URL, get the page content, and summarize it."
+        )
         mock_from_function.return_value = mock_tool
 
         # Test execution
@@ -109,7 +111,8 @@ class TestOpenUrlFunction(unittest.TestCase):
         # Verification
         self.assertEqual(tool.name, "open_url_function")
         self.assertEqual(
-            tool.description, "Open the specified URL, get the page content, and summarize it."
+            tool.description,
+            "Open the specified URL, get the page content, and summarize it.",
         )
 
         # Verify that from_function is called with the correct parameters
@@ -125,4 +128,3 @@ class TestOpenUrlFunction(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    

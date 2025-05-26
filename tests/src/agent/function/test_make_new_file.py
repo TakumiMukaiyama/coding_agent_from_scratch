@@ -15,7 +15,9 @@ class TestMakeNewFileFunction(unittest.TestCase):
     @patch("src.agent.function.make_new_file.os.path.exists")
     @patch("src.agent.function.make_new_file.os.makedirs")
     @patch("src.agent.function.make_new_file.open", new_callable=mock_open)
-    def test_execute_with_existing_directory(self, mock_file, mock_makedirs, mock_exists):
+    def test_execute_with_existing_directory(
+        self, mock_file, mock_makedirs, mock_exists
+    ):
         """Test creating a file in an existing directory"""
         # Mock setup
         mock_exists.return_value = True
@@ -23,7 +25,9 @@ class TestMakeNewFileFunction(unittest.TestCase):
         # Execute test
         filepath = "existing_dir/test_file.txt"
         file_contents = "Test content"
-        result = MakeNewFileFunction.execute(filepath=filepath, file_contents=file_contents)
+        result = MakeNewFileFunction.execute(
+            filepath=filepath, file_contents=file_contents
+        )
 
         # Verification
         mock_exists.assert_called_once_with("existing_dir")
@@ -43,7 +47,9 @@ class TestMakeNewFileFunction(unittest.TestCase):
         # Execute test
         filepath = "new_dir/test_file.txt"
         file_contents = "Test content"
-        result = MakeNewFileFunction.execute(filepath=filepath, file_contents=file_contents)
+        result = MakeNewFileFunction.execute(
+            filepath=filepath, file_contents=file_contents
+        )
 
         # Verification
         mock_exists.assert_called_once_with("new_dir")
@@ -59,7 +65,9 @@ class TestMakeNewFileFunction(unittest.TestCase):
         mock_from_function.return_value = "mock_tool"
 
         # Execute test
-        with patch.object(MakeNewFileFunction, "function_name", return_value="make_new_file"):
+        with patch.object(
+            MakeNewFileFunction, "function_name", return_value="make_new_file"
+        ):
             result = MakeNewFileFunction.to_tool()
 
         # Verification
@@ -80,13 +88,17 @@ def test_execute_with_real_filesystem(tmp_path):
     file_contents = "Test content for file"
 
     # Execute function
-    result = MakeNewFileFunction.execute(filepath=str(test_file), file_contents=file_contents)
+    result = MakeNewFileFunction.execute(
+        filepath=str(test_file), file_contents=file_contents
+    )
 
     # Verification
     assert result == {"result": "success"}
     assert test_dir.exists()  # Check if directory was created
     assert test_file.exists()  # Check if file was created
-    assert test_file.read_text(encoding="utf-8") == file_contents  # Check if content is correct
+    assert (
+        test_file.read_text(encoding="utf-8") == file_contents
+    )  # Check if content is correct
 
 
 if __name__ == "__main__":

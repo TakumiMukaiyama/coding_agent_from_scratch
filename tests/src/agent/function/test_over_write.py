@@ -32,7 +32,9 @@ class TestOverwriteFileFunction(unittest.TestCase):
         mock_from_function.return_value = "mock_tool"
 
         # Execute test
-        with patch.object(OverwriteFileFunction, "function_name", return_value="overwrite_file"):
+        with patch.object(
+            OverwriteFileFunction, "function_name", return_value="overwrite_file"
+        ):
             result = OverwriteFileFunction.to_tool()
 
         # Verify
@@ -58,13 +60,19 @@ def test_execute_with_real_filesystem(tmp_path):
     new_content = "New content"
 
     # Execute function
-    result = OverwriteFileFunction.execute(filepath=str(test_file), new_text=new_content)
+    result = OverwriteFileFunction.execute(
+        filepath=str(test_file), new_text=new_content
+    )
 
     # Verify
     assert result == {"result": "success"}
     assert test_file.exists()  # Check if file exists
-    assert test_file.read_text(encoding="utf-8") == new_content  # Check if content was overwritten
-    assert test_file.read_text(encoding="utf-8") != initial_content  # Check if it's not the initial content
+    assert (
+        test_file.read_text(encoding="utf-8") == new_content
+    )  # Check if content was overwritten
+    assert (
+        test_file.read_text(encoding="utf-8") != initial_content
+    )  # Check if it's not the initial content
 
 
 if __name__ == "__main__":

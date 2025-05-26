@@ -15,7 +15,9 @@ app = typer.Typer(help="Agent execution CLI")
 
 @app.command()
 def coordinator(
-    instruction: str = typer.Argument(..., help="Instruction content for programmer agent"),
+    instruction: str = typer.Argument(
+        ..., help="Instruction content for programmer agent"
+    ),
 ):
     """Execute Programmer agent."""
     try:
@@ -29,7 +31,9 @@ def coordinator(
         """
         instruction = f"{prompt}\n{instruction}"
 
-        result = agent.development_cycle(instruction, max_iterations, auto_create_branch)
+        result = agent.development_cycle(
+            instruction, max_iterations, auto_create_branch
+        )
 
         logger.info("Code generation completed")
 

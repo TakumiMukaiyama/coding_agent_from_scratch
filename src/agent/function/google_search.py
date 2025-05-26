@@ -8,6 +8,7 @@ from src.agent.schema.google_search_input import GoogleSearchInput
 
 class GoogleSearchFunction(BaseFunction):
     """Function to search Google"""
+
     _search_client: GoogleSearchClient = None
 
     @classmethod

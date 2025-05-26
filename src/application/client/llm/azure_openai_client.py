@@ -35,8 +35,12 @@ class AzureOpenAIClient:
         self.base_url: str = base_url or agent_settings.AZURE_OPENAI_API_ENDPOINT
         self.api_version: str = api_version or agent_settings.AZURE_OPENAI_API_VERSION
         self.api_key: str = api_key or agent_settings.AZURE_OPENAI_API_KEY
-        self.deployment_name: str = deployment_name or agent_settings.AZURE_OPENAI_DEPLOYMENT_NAME_GPT_41
-        self.embedding_model: str = embedding_model or agent_settings.AZURE_OPENAI_EMBEDDING_MODEL
+        self.deployment_name: str = (
+            deployment_name or agent_settings.AZURE_OPENAI_DEPLOYMENT_NAME_GPT_41
+        )
+        self.embedding_model: str = (
+            embedding_model or agent_settings.AZURE_OPENAI_EMBEDDING_MODEL
+        )
         self.chat_model: AzureChatOpenAI | None = None
         self.embedding_model_instance: AzureOpenAIEmbeddings | None = None
 

@@ -117,9 +117,7 @@ class TestGitHubClient(unittest.TestCase):
             self.client.get_file_content(self.repo_full_name, file_path)
 
         self.assertEqual(context.exception.status, 404)
-        self.assertIn(
-            f"Failed to get file '{file_path}'", str(context.exception.data)
-        )
+        self.assertIn(f"Failed to get file '{file_path}'", str(context.exception.data))
 
     @patch.object(GitHubClient, "get_repository")
     def test_create_file(self, mock_get_repository):
@@ -393,7 +391,6 @@ class TestGitHubClient(unittest.TestCase):
     def test_get_repo_contents_single_file(self, mock_get_repository):
         """Test for get_repo_contents method when single file is specified"""
         path = "path/to/file.txt"
-
 
         mock_repo = MagicMock(spec=Repository)
         mock_get_repository.return_value = mock_repo

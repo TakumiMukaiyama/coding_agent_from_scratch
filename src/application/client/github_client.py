@@ -36,7 +36,9 @@ class GitHubClient:
         if access_token is None:
             access_token = os.environ.get("GITHUB_TOKEN")
             if not access_token:
-                print("Environment variable GITHUB_TOKEN is not set. GitHub operations cannot be performed.")
+                print(
+                    "Environment variable GITHUB_TOKEN is not set. GitHub operations cannot be performed."
+                )
                 sys.exit(1)
 
         self.github = Github(access_token)
@@ -54,13 +56,17 @@ class GitHubClient:
         try:
             return self.github.get_repo(repo_full_name)
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"Failed to retrieve repository '{repo_full_name}': {error_message}",
             )
 
-    def get_file_content(self, repo_full_name: str, file_path: str, ref: str | None = None) -> str:
+    def get_file_content(
+        self, repo_full_name: str, file_path: str, ref: str | None = None
+    ) -> str:
         """Get the content of the specified file in the repository.
 
         Args:
@@ -77,13 +83,17 @@ class GitHubClient:
             content_file = repo.get_contents(file_path, ref=ref)
 
             if isinstance(content_file, list):
-                raise ValueError(f"'{file_path}' is a directory. Please specify a file path.")
+                raise ValueError(
+                    f"'{file_path}' is a directory. Please specify a file path."
+                )
 
             # Decode file content
             content = base64.b64decode(content_file.content).decode("utf-8")
             return content
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"Failed to get file '{file_path}': {error_message}",
@@ -122,7 +132,9 @@ class GitHubClient:
             )
             return result
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"Failed to create file '{file_path}': {error_message}",
@@ -163,13 +175,17 @@ class GitHubClient:
             )
             return result
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"Failed to update file '{file_path}': {error_message}",
             )
 
-    def get_file_sha(self, repo_full_name: str, file_path: str, ref: str | None = None) -> str:
+    def get_file_sha(
+        self, repo_full_name: str, file_path: str, ref: str | None = None
+    ) -> str:
         """Get the SHA value of the specified file.
 
         Required for file updates.
@@ -190,17 +206,23 @@ class GitHubClient:
             content_file = repo.get_contents(file_path, ref=ref)
 
             if isinstance(content_file, list):
-                raise ValueError(f"'{file_path}' is a directory. Please specify a file path.")
+                raise ValueError(
+                    f"'{file_path}' is a directory. Please specify a file path."
+                )
 
             return content_file.sha
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"Failed to get SHA of file '{file_path}': {error_message}",
             )
 
-    def create_branch(self, repo_full_name: str, new_branch_name: str, base_branch: str | None = None) -> Branch:
+    def create_branch(
+        self, repo_full_name: str, new_branch_name: str, base_branch: str | None = None
+    ) -> Branch:
         """Create a new branch based on an existing branch.
 
         Args:
@@ -231,7 +253,9 @@ class GitHubClient:
             # Return the created branch
             return repo.get_branch(new_branch_name)
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"Failed to create branch '{new_branch_name}': {error_message}",
@@ -254,8 +278,12 @@ class GitHubClient:
             branches = list(repo.get_branches())
             return [branch.name for branch in branches]
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"Failed to get branch list: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"Failed to get branch list: {error_message}"
+            )
 
     def create_pull_request(
         self,
@@ -292,10 +320,16 @@ class GitHubClient:
             )
             return pr
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"Failed to create pull request: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"Failed to create pull request: {error_message}"
+            )
 
-    def list_issues(self, repo_full_name: str, state: str = "open", labels: list[str] | None = None) -> list[Issue]:
+    def list_issues(
+        self, repo_full_name: str, state: str = "open", labels: list[str] | None = None
+    ) -> list[Issue]:
         """Get the list of issues in the repository.
 
         Args:
@@ -314,8 +348,12 @@ class GitHubClient:
             issues = list(repo.get_issues(state=state, labels=labels))
             return issues
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"Failed to get issue list: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"Failed to get issue list: {error_message}"
+            )
 
     def create_issue(
         self,
@@ -342,10 +380,14 @@ class GitHubClient:
         """
         try:
             repo = self.get_repository(repo_full_name)
-            issue = repo.create_issue(title=title, body=body, labels=labels, assignees=assignees)
+            issue = repo.create_issue(
+                title=title, body=body, labels=labels, assignees=assignees
+            )
             return issue
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(e.status, f"Failed to create issue: {error_message}")
 
     def get_repo_contents(
@@ -377,7 +419,9 @@ class GitHubClient:
 
             return contents
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
             raise GithubException(
                 e.status,
                 f"Failed to get contents of path '{path}': {error_message}",
@@ -432,8 +476,13 @@ class GitHubClient:
                 "url": pr.html_url,
             }
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"Failed to get information of PR '{pr_number}': {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status,
+                f"Failed to get information of PR '{pr_number}': {error_message}",
+            )
 
     def commit_untracked_files(
         self,
@@ -468,7 +517,9 @@ class GitHubClient:
                 repo.get_git_ref(f"heads/{working_branch}")
             except GithubException as e:
                 if e.status == 404:
-                    raise GithubException(e.status, f"Branch '{working_branch}' does not exist")
+                    raise GithubException(
+                        e.status, f"Branch '{working_branch}' does not exist"
+                    )
 
             # Build necessary information for GitHub's CreateCommit method
             git_ref = repo.get_git_ref(f"heads/{working_branch}")
@@ -496,7 +547,9 @@ class GitHubClient:
                         repo_relative_path = os.path.relpath(file_path, repo_root)
                         logger.info(f"Repository relative path: {repo_relative_path}")
                     except ValueError:
-                        logger.warning(f"Warning: Failed to convert file path to repository relative path: {file_path}")
+                        logger.warning(
+                            f"Warning: Failed to convert file path to repository relative path: {file_path}"
+                        )
                         continue
                 else:
                     repo_relative_path = file_path
@@ -505,7 +558,9 @@ class GitHubClient:
                     content = f.read()
 
                 # Create a blob in GitHub
-                blob = repo.create_git_blob(base64.b64encode(content).decode("utf-8"), "base64")
+                blob = repo.create_git_blob(
+                    base64.b64encode(content).decode("utf-8"), "base64"
+                )
 
                 # Create a tree element
                 element = InputGitTreeElement(
@@ -528,7 +583,9 @@ class GitHubClient:
             parent_commit = repo.get_git_commit(parent)
 
             # Create a new commit
-            new_commit = repo.create_git_commit(commit_message, new_tree, [parent_commit])
+            new_commit = repo.create_git_commit(
+                commit_message, new_tree, [parent_commit]
+            )
 
             # Update the branch reference
             repo.get_git_ref(f"heads/{branch}").edit(new_commit.sha)
@@ -543,7 +600,13 @@ class GitHubClient:
 
             return result
         except GithubException as e:
-            error_message = e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
-            raise GithubException(e.status, f"Failed to commit untracked files: {error_message}")
+            error_message = (
+                e.data.get("message", "") if isinstance(e.data, dict) else str(e.data)
+            )
+            raise GithubException(
+                e.status, f"Failed to commit untracked files: {error_message}"
+            )
         except Exception as e:
-            raise Exception(f"Error occurred while committing untracked files: {str(e)}")
+            raise Exception(
+                f"Error occurred while committing untracked files: {str(e)}"
+            )

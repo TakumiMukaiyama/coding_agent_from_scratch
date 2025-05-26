@@ -111,9 +111,7 @@ class TestGetFilesListFunction:
         mock_from_function.assert_called_once()
         call_args = mock_from_function.call_args
         assert call_args[1]["name"] == "get_files_list_function"
-        assert (
-            "Get the list of files under the project" in call_args[1]["description"]
-        )
+        assert "Get the list of files under the project" in call_args[1]["description"]
         assert call_args[1]["func"] == GetFilesListFunction.execute
         assert call_args[1]["args_schema"] == GetFilesListInput
         assert result == "mock_tool"

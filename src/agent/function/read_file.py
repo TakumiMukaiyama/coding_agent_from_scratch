@@ -9,6 +9,7 @@ from src.application.function.base import BaseFunction
 
 class ReadFileFunction(BaseFunction):
     """Function to read a file"""
+
     @staticmethod
     def execute(filepath: str) -> Dict[str, str]:
         """Read the contents of a file"""

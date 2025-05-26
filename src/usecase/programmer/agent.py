@@ -40,7 +40,9 @@ class ProgrammerAgent:
         self.chain = self._initialize_chain()
         self.tools = self._initialize_tools()
 
-        self.agent_executor: AgentExecutor = self._initialize_executor(default_project_root)
+        self.agent_executor: AgentExecutor = self._initialize_executor(
+            default_project_root
+        )
 
     def _initialize_chain(self) -> PydanticChain:
         return PydanticChain(
@@ -84,7 +86,9 @@ class ProgrammerAgent:
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
+        return AgentExecutor(
+            agent=agent, tools=self.tools, max_iterations=30, verbose=True
+        )
 
     def _prepare_input(self, programmer_input: ProgrammerInput) -> ProgrammerInput:
         """
@@ -118,7 +122,9 @@ class ProgrammerAgent:
 
         # Reinitialize agent if project root has changed
         if processed_input.project_root != self.default_project_root:
-            self.agent_executor = self._initialize_executor(processed_input.project_root)
+            self.agent_executor = self._initialize_executor(
+                processed_input.project_root
+            )
             self.default_project_root = processed_input.project_root
 
         # Execute agent
@@ -135,7 +141,9 @@ class ProgrammerAgent:
             str: Programmer's output
         """
         if reviewer_comment:
-            input_text = f"{instruction}\n\n[Feedback from Reviewer]:\n{reviewer_comment}"
+            input_text = (
+                f"{instruction}\n\n[Feedback from Reviewer]:\n{reviewer_comment}"
+            )
         else:
             input_text = instruction
 
@@ -158,7 +166,9 @@ class ProgrammerAgent:
             str: Generated diff
         """
         diff_function = GenerateDiffFunction()
-        result = diff_function.execute(base_branch=base_branch, target_branch=target_branch, file_path=file_path)
+        result = diff_function.execute(
+            base_branch=base_branch, target_branch=target_branch, file_path=file_path
+        )
 
         if result["result"] == "error":
             return f"Diff retrieval error: {result['message']}"

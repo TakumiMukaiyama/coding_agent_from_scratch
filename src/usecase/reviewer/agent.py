@@ -63,7 +63,9 @@ If there are issues, please point out specific improvements.""",
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
+        return AgentExecutor(
+            agent=agent, tools=self.tools, max_iterations=30, verbose=True
+        )
 
     def run(self, reviewer_input: ReviewerInput) -> ReviewerOutput:
         """Execute code review.
@@ -90,7 +92,9 @@ If there are issues, please point out specific improvements.""",
             
             """
         if reviewer_input.programmer_comment:
-            input_text += f"\n\nComment from programmer:\n{reviewer_input.programmer_comment}"
+            input_text += (
+                f"\n\nComment from programmer:\n{reviewer_input.programmer_comment}"
+            )
 
         agent_result = self.agent_executor.invoke({"input": input_text})
         output_text = agent_result["output"]

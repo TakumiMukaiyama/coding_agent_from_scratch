@@ -10,6 +10,7 @@ from src.application.function.base import BaseFunction
 
 class GeneratePullRequestParamsFunction(BaseFunction):
     """Function to generate pull request parameters"""
+
     def __init__(self):
         self.title: str = ""
         self.description: str = ""

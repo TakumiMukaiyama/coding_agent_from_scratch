@@ -8,6 +8,7 @@ from src.agent.schema.exec_rspec_test_input import ExecRspecTestInput
 
 class ExecRspecTestFunction(BaseFunction):
     """Function to execute RSpec tests"""
+
     @staticmethod
     def execute(file_or_dir_path: str) -> Dict[str, str]:
         script = f"bundle exec rspec '{file_or_dir_path}'"

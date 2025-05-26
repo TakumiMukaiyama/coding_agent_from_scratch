@@ -114,7 +114,9 @@ class GetFilesListFunction(BaseFunction):
             exclude_patterns = GetFilesListFunction.DEFAULT_EXCLUDE_PATTERNS
         else:
             # Add default patterns to user-specified exclude patterns
-            exclude_patterns = list(set(exclude_patterns + GetFilesListFunction.DEFAULT_EXCLUDE_PATTERNS))
+            exclude_patterns = list(
+                set(exclude_patterns + GetFilesListFunction.DEFAULT_EXCLUDE_PATTERNS)
+            )
 
         # Normalize root directory
         root_path = Path(root_directory).resolve()

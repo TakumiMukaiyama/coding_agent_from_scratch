@@ -82,7 +82,9 @@ class TestPydanticChain(unittest.TestCase):
         result = self.chain.get_prompt(self.test_input)
 
         # Check expected values
-        mock_prompt_template.invoke.assert_called_once_with({"test_field": "Test value"})
+        mock_prompt_template.invoke.assert_called_once_with(
+            {"test_field": "Test value"}
+        )
         mock_prompt_invoke_result.to_string.assert_called_once()
         self.assertEqual(result, "Test prompt Test value")
 
@@ -160,8 +162,12 @@ class TestPydanticChain(unittest.TestCase):
             )
 
         # Check expected values
-        self.assertEqual(self.mock_chain.invoke.call_count, 3)  # First attempt + 2 retries
-        self.assertEqual(mock_sleep.call_count, 2)  # 2 retries, so sleep should be called twice
+        self.assertEqual(
+            self.mock_chain.invoke.call_count, 3
+        )  # First attempt + 2 retries
+        self.assertEqual(
+            mock_sleep.call_count, 2
+        )  # 2 retries, so sleep should be called twice
         self.assertEqual(context.exception, rate_limit_error)
 
     @patch("time.sleep")

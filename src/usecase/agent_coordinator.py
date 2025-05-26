@@ -106,7 +106,9 @@ Output only the branch name. No explanation or surrounding text needed.
             ReviewerOutput: Review result
         """
         if not self.working_branch:
-            error_msg = "Working branch is not set. Please run create_working_branch() first."
+            error_msg = (
+                "Working branch is not set. Please run create_working_branch() first."
+            )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -168,7 +170,9 @@ Output only the branch name. No explanation or surrounding text needed.
 
                 programmer_output = self.run_programmer(
                     instruction,
-                    reviewer_comment=reviewer_output.summary if reviewer_output else None,
+                    reviewer_comment=reviewer_output.summary
+                    if reviewer_output
+                    else None,
                 )
                 logger.info(f"Programmer output: {programmer_output[:100]}...")
 

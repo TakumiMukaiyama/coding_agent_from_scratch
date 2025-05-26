@@ -81,7 +81,9 @@ class LocalGitClient:
                 head_branch = self.repo.active_branch.name
 
             if head_branch == base_branch:
-                raise ValueError(f"Base branch '{base_branch}' and head branch '{head_branch}' are the same")
+                raise ValueError(
+                    f"Base branch '{base_branch}' and head branch '{head_branch}' are the same"
+                )
 
             pr = self.github_client.create_pull_request(
                 repo_full_name=self.repo_full_name,

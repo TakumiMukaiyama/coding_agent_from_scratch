@@ -12,6 +12,7 @@ class ReviewerOutput(BaseOutput):
 
     summary: str = Field(..., description="Review summary comment")
     suggestions: List[str] = Field(
-        default_factory=list, description="List of discovered issues and improvement suggestions"
+        default_factory=list,
+        description="List of discovered issues and improvement suggestions",
     )
     lgtm: bool = Field(..., description="True if no issues (Looks Good To Me)")

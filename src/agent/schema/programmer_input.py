@@ -21,7 +21,9 @@ class ProgrammerInput(BaseInput):
         description="Project type (e.g., Web application, API development, Data analysis, Infrastructure management, etc.)",
     )
 
-    project_root: Optional[str] = Field(default="src/", description="Root directory of the project")
+    project_root: Optional[str] = Field(
+        default="src/", description="Root directory of the project"
+    )
 
     language_specific_notes: Optional[str] = Field(
         default="",

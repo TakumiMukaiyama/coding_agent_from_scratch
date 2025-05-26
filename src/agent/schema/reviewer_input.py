@@ -11,4 +11,6 @@ class ReviewerInput(BaseInput):
     """
 
     diff: str = Field(..., description="Code diff to be reviewed (Unified Diff format)")
-    programmer_comment: Optional[str] = Field(None, description="Supplementary explanation from programmer (optional)")
+    programmer_comment: Optional[str] = Field(
+        None, description="Supplementary explanation from programmer (optional)"
+    )
