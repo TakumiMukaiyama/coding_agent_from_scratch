@@ -37,9 +37,7 @@ class RecordLgtmFunction(BaseFunction):
         logger = get_logger(__name__)
 
         RecordLgtmFunction._thread_local.lgtm_status = True
-        logger.info(
-            "RecordLgtmFunction.execute() が呼び出されました - LGTM状態をTrueに設定"
-        )
+        logger.info("RecordLgtmFunction.execute() が呼び出されました - LGTM状態をTrueに設定")
         return {"result": "LGTMを記録しました"}
 
     @classmethod
