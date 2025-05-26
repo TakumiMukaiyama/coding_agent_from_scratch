@@ -6,27 +6,29 @@
 
 使用例:
     # Python プロジェクトの場合
-    prompt = generate_programmer_prompt(
+    from src.agent.schema.programmer_input import ProgrammerInput
+
+    input_data = ProgrammerInput(
+        instruction="新しいAPIエンドポイントを作成してください",
         language="Python",
         project_type="Webアプリケーション",
-        project_root="src/",
-        instruction="新しいAPIエンドポイントを作成してください"
+        project_root="src/"
     )
 
     # TypeScript プロジェクトの場合
-    prompt = generate_programmer_prompt(
+    input_data = ProgrammerInput(
+        instruction="新しいコンポーネントを作成してください",
         language="TypeScript",
         project_type="React アプリケーション",
-        project_root="frontend/",
-        instruction="新しいコンポーネントを作成してください"
+        project_root="frontend/"
     )
 
     # Terraform プロジェクトの場合
-    prompt = generate_programmer_prompt(
+    input_data = ProgrammerInput(
+        instruction="新しいリソースを定義してください",
         language="Terraform",
         project_type="インフラストラクチャ管理",
-        project_root="terraform/",
-        instruction="新しいリソースを定義してください"
+        project_root="terraform/"
     )
 
     # 言語固有の設定を取得
@@ -147,50 +149,6 @@ LANGUAGE_SPECIFIC_CONFIGS = {
 }
 
 
-# プロンプト生成関数
-def generate_programmer_prompt(
-    language: str = "Python",
-    project_type: str = "一般的なソフトウェア開発",
-    project_root: str = "src/",
-    instruction: str = "",
-) -> str:
-    """
-    汎用的なプログラマープロンプトを生成する
-
-    Args:
-        language: プログラミング言語
-        project_type: プロジェクトタイプ
-        project_root: プロジェクトのルートディレクトリ
-        instruction: ユーザーからの指示
-
-    Returns:
-        生成されたプロンプト文字列
-    """
-    language_config = LANGUAGE_SPECIFIC_CONFIGS.get(language.lower(), {})
-    language_specific_notes = language_config.get("notes", "")
-
-    return PROGRAMMER_PROMPT_TEMPLATE.format(
-        language=language,
-        project_type=project_type,
-        project_root=project_root,
-        language_specific_notes=language_specific_notes,
-        instruction=instruction,
-    )
-
-
-def generate_agent_system_message(project_root: str = "src/") -> str:
-    """
-    エージェントのシステムメッセージを生成する
-
-    Args:
-        project_root: プロジェクトのルートディレクトリ
-
-    Returns:
-        生成されたシステムメッセージ
-    """
-    return AGENT_SYSTEM_MESSAGE.format(project_root=project_root)
-
-
 def get_language_config(language: str) -> dict:
     """
     指定された言語の設定を取得する
@@ -202,4 +160,3 @@ def get_language_config(language: str) -> dict:
         言語固有の設定辞書
     """
     return LANGUAGE_SPECIFIC_CONFIGS.get(language.lower(), {})
-
