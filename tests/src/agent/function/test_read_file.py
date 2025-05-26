@@ -7,20 +7,20 @@ from src.agent.schema.read_file_input import ReadFileInput
 
 class TestReadFileFunction(unittest.TestCase):
     """
-    ReadFileFunctionクラスのテストケース
+    Test cases for ReadFileFunction
 
-    以下のケースをテストします：
-    - ファイルが存在する場合の正常系
-    - ファイルが存在しない場合のエラーハンドリング
-    - to_tool関数の正常動作確認
+    Test the following cases:
+    - Normal case when file exists
+    - Error handling when file does not exist
+    - Check that to_tool function works correctly
     """
 
     def test_execute_file_exists(self):
-        """ファイルが存在する場合のテスト"""
-        file_content = "テストコンテンツ"
+        """Test for normal case when file exists"""
+        file_content = "Test content"
         filepath = "test_file.txt"
 
-        # ファイルが開かれるときのモック
+        # Mock when file is opened
         with (
             patch("os.path.exists", return_value=True),
             patch("builtins.open", mock_open(read_data=file_content)),
@@ -31,10 +31,10 @@ class TestReadFileFunction(unittest.TestCase):
             self.assertEqual(result["file_contents"], file_content)
 
     def test_execute_file_not_exists(self):
-        """ファイルが存在しない場合のテスト"""
+        """Test for error handling when file does not exist"""
         filepath = "non_existent_file.txt"
 
-        # ファイルが存在しないことをモック
+        # Mock that file does not exist
         with patch("os.path.exists", return_value=False):
             result = ReadFileFunction.execute(filepath)
 
@@ -42,12 +42,12 @@ class TestReadFileFunction(unittest.TestCase):
             self.assertEqual(result["error"], "File not found.")
 
     def test_to_tool(self):
-        """to_tool関数が正しくStructuredToolを返すことを確認"""
+        """Check that to_tool function returns StructuredTool correctly"""
         tool = ReadFileFunction.to_tool()
 
         self.assertEqual(tool.name, "read_file_function")
         self.assertEqual(
-            tool.description, "指定されたファイルを読み取り、内容を返します。"
+            tool.description, "Read the specified file and return the content."
         )
         self.assertEqual(tool.args_schema, ReadFileInput)
 

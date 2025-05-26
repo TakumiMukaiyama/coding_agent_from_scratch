@@ -3,6 +3,6 @@ from pydantic import Field
 
 
 class CreateBranchInput(BaseInput):
-    """ブランチ作成用の入力データ"""
+    """Input for creating a branch"""
 
-    branch_name: str = Field(..., description="作成するブランチ名")
+    branch_name: str = Field(..., description="Name of the branch to create")

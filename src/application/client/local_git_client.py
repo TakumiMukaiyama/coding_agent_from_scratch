@@ -1,5 +1,6 @@
 from git import Repo
 from github import GithubException
+
 from src.application.client.github_client import GitHubClient
 from src.infrastructure.utils.logger import get_logger
 
@@ -7,7 +8,7 @@ logger = get_logger(__name__)
 
 
 class LocalGitClient:
-    """エージェントが編集したファイルをコミット、プッシュし、PRを作成するクラス."""
+    """Class for committing, pushing files edited by agent and creating PRs."""
 
     def __init__(
         self,
@@ -16,12 +17,12 @@ class LocalGitClient:
         repo_full_name: str,
         github_username: str,
     ):
-        """初期化.
+        """Initialize.
 
         Args:
-            repo_path: ローカルリポジトリのパス
-            github_token: GitHubアクセストークン
-            repo_full_name: 'ユーザー名/リポジトリ名'形式のリポジトリ名
+            repo_path: Path to local repository
+            github_token: GitHub access token
+            repo_full_name: Repository name in 'username/repository' format
         """
         self.repo_path = repo_path
         self.repo_full_name = repo_full_name
@@ -31,11 +32,11 @@ class LocalGitClient:
         self.github_client = GitHubClient(github_token)
 
     def commit_changes(self, file_paths: list[str], commit_message: str) -> dict:
-        """変更をコミットする."""
+        """Commit changes."""
         try:
             self.repo.git.add(file_paths)
             commit = self.repo.index.commit(commit_message)
-            logger.info(f"変更をコミットしました: {commit.hexsha}")
+            logger.info(f"Changes committed: {commit.hexsha}")
             return {
                 "commit": {"sha": commit.hexsha, "message": commit_message},
                 "files": file_paths,
@@ -45,23 +46,23 @@ class LocalGitClient:
             raise
 
     def push_to_remote(self, branch_name: str | None = None) -> bool:
-        """リモートリポジトリに変更をプッシュする（PATを用いたHTTPS認証）."""
+        """Push changes to remote repository (HTTPS authentication using PAT)."""
         try:
             if branch_name is None:
                 branch_name = self.repo.active_branch.name
 
             if "origin" not in [remote.name for remote in self.repo.remotes]:
-                raise ValueError("リモート 'origin' が設定されていません")
+                raise ValueError("Remote 'origin' is not configured")
 
-            # 認証情報付きURLに置換
+            # Replace with URL containing authentication info
             remote_url = f"https://{self.github_username}:{self.github_token}@github.com/{self.repo_full_name}.git"
 
             origin = self.repo.remote("origin")
             origin.set_url(remote_url)
 
-            # Push実行
+            # Execute push
             self.repo.git.push("--set-upstream", "origin", branch_name)
-            logger.info(f"変更をリモートにプッシュしました: {branch_name}")
+            logger.info(f"Changes pushed to remote: {branch_name}")
             return True
         except Exception:
             logger.exception()
@@ -74,15 +75,13 @@ class LocalGitClient:
         head_branch: str | None = None,
         base_branch: str = "main",
     ) -> dict:
-        """プルリクエストを作成する."""
+        """Create a pull request."""
         try:
             if head_branch is None:
                 head_branch = self.repo.active_branch.name
 
             if head_branch == base_branch:
-                raise ValueError(
-                    f"ベースブランチ '{base_branch}' とヘッドブランチ '{head_branch}' が同じです"
-                )
+                raise ValueError(f"Base branch '{base_branch}' and head branch '{head_branch}' are the same")
 
             pr = self.github_client.create_pull_request(
                 repo_full_name=self.repo_full_name,
@@ -92,7 +91,7 @@ class LocalGitClient:
                 base_branch=base_branch,
             )
 
-            logger.info(f"PRを作成しました: #{pr.number} - {pr.html_url}")
+            logger.info(f"PR created: #{pr.number} - {pr.html_url}")
             return {"number": pr.number, "title": pr.title, "url": pr.html_url}
 
         except GithubException as e:
@@ -103,7 +102,7 @@ class LocalGitClient:
                 details = ", ".join([err.get("message", str(err)) for err in errors])
                 error_message = f"{msg} - {details}" if details else msg
 
-            logger.exception(f"PRの作成に失敗しました: {error_message}")
+            logger.exception(f"Failed to create PR: {error_message}")
             raise GithubException(e.status, error_message)
         except Exception:
             logger.exception()

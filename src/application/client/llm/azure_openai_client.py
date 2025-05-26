@@ -1,15 +1,16 @@
-from src.infrastructure.config.agent_setting import agent_settings
-from src.infrastructure.utils.logger import get_logger
 from langchain_openai.chat_models import AzureChatOpenAI
 from langchain_openai.embeddings import AzureOpenAIEmbeddings
+
+from src.infrastructure.config.agent_setting import agent_settings
+from src.infrastructure.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
 class AzureOpenAIClient:
-    """Azure OpenAI APIクライアントクラス.
+    """Azure OpenAI API client class.
 
-    チャット機能と埋め込み機能を提供する.
+    Provides chat and embedding functionality.
     """
 
     def __init__(
@@ -20,36 +21,32 @@ class AzureOpenAIClient:
         deployment_name: str = None,
         embedding_model: str = None,
     ) -> None:
-        """コンストラクタ.
+        """Constructor.
 
-        設定ファイルから必要な情報を取得する
+        Retrieves necessary information from configuration file
 
         Args:
-            base_url: Azure OpenAI APIのエンドポイントURL
-            api_version: Azure OpenAI APIのバージョン
-            api_key: Azure OpenAI APIのキー
-            deployment_name: デプロイメント名
-            embedding_model: 埋め込みモデル名
+            base_url: Azure OpenAI API endpoint URL
+            api_version: Azure OpenAI API version
+            api_key: Azure OpenAI API key
+            deployment_name: Deployment name
+            embedding_model: Embedding model name
         """
         self.base_url: str = base_url or agent_settings.AZURE_OPENAI_API_ENDPOINT
         self.api_version: str = api_version or agent_settings.AZURE_OPENAI_API_VERSION
         self.api_key: str = api_key or agent_settings.AZURE_OPENAI_API_KEY
-        self.deployment_name: str = (
-            deployment_name or agent_settings.AZURE_OPENAI_DEPLOYMENT_NAME_GPT_41
-        )
-        self.embedding_model: str = (
-            embedding_model or agent_settings.AZURE_OPENAI_EMBEDDING_MODEL
-        )
+        self.deployment_name: str = deployment_name or agent_settings.AZURE_OPENAI_DEPLOYMENT_NAME_GPT_41
+        self.embedding_model: str = embedding_model or agent_settings.AZURE_OPENAI_EMBEDDING_MODEL
         self.chat_model: AzureChatOpenAI | None = None
         self.embedding_model_instance: AzureOpenAIEmbeddings | None = None
 
     def initialize_chat(self) -> AzureChatOpenAI:
-        """チャットモデルの初期化.
+        """Initialize chat model.
 
         Returns:
-            ChatOpenAI: 初期化されたチャットモデル
+            ChatOpenAI: Initialized chat model
         """
-        # o3-miniモデルの場合は parallel_tool_calls を無効化
+        # Disable parallel_tool_calls for o3-mini model
         if self.deployment_name and "o3-mini" in self.deployment_name:
             return AzureChatOpenAI(
                 azure_endpoint=self.base_url,
@@ -66,10 +63,10 @@ class AzureOpenAIClient:
         )
 
     def initialize_embedding(self) -> AzureOpenAIEmbeddings:
-        """埋め込みモデルの初期化.
+        """Initialize embedding model.
 
         Returns:
-            OpenAIEmbeddings: 初期化された埋め込みモデル
+            OpenAIEmbeddings: Initialized embedding model
         """
         return AzureOpenAIEmbeddings(
             model=self.embedding_model,

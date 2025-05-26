@@ -6,6 +6,7 @@ from src.infrastructure.config.google_search_settings import google_search_setti
 
 
 class GoogleSearchClient:
+    """Client class for interacting with Google Search API."""
     def __init__(self) -> None:
         self.api_key = google_search_settings.GOOGLE_API_KEY
         self.cx = google_search_settings.CUSTOM_SEARCH_ENGINE_ID

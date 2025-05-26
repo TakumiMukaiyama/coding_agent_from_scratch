@@ -6,7 +6,10 @@ from src.infrastructure.config.agent_setting import agent_settings
 
 
 class TestAzureOpenAIClient(TestCase):
+    """Test case for AzureOpenAIClient class"""
+
     def setUp(self):
+        """Setup before tests"""
         self.client = AzureOpenAIClient(
             base_url=agent_settings.AZURE_OPENAI_API_ENDPOINT,
             api_version=agent_settings.AZURE_OPENAI_API_VERSION,
@@ -16,6 +19,7 @@ class TestAzureOpenAIClient(TestCase):
         )
 
     def test_initialize_chat(self):
+        """Test for initialize_chat method"""
         with patch(
             "src.application.client.llm.azure_openai_client.AzureChatOpenAI"
         ) as mock_chat_openai:
@@ -23,6 +27,7 @@ class TestAzureOpenAIClient(TestCase):
             mock_chat_openai.assert_called_once()
 
     def test_initialize_embedding(self):
+        """Test for initialize_embedding method"""
         with patch(
             "src.application.client.llm.azure_openai_client.AzureOpenAIEmbeddings"
         ) as mock_openai_embeddings:

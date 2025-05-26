@@ -1,5 +1,5 @@
 """
-GoogleSearchFunctionの単体テスト
+Unit test for GoogleSearchFunction
 """
 
 import unittest
@@ -11,22 +11,22 @@ from src.application.client.google_search_client import GoogleSearchClient
 
 
 class TestGoogleSearchFunction(unittest.TestCase):
-    """GoogleSearchFunctionのテストクラス"""
+    """Test class for GoogleSearchFunction"""
 
     @patch("src.agent.function.google_search.GoogleSearchFunction.search_client")
     def test_execute(self, mock_search_client):
-        """execute メソッドのテスト"""
-        # モックの設定
+        """Test for execute method"""
+        # Set up mock
         mock_item1 = {
-            "title": "テスト結果1",
+            "title": "Test result1",
             "formatted_url": "https://example.com/1",
-            "html_snippet": "テストの内容1",
+            "html_snippet": "Test content1",
         }
 
         mock_item2 = {
-            "title": "テスト結果2",
+            "title": "Test result2",
             "formatted_url": "https://example.com/2",
-            "html_snippet": "テストの内容2",
+            "html_snippet": "Test content2",
         }
 
         mock_result = {"items": [mock_item1, mock_item2]}
@@ -35,11 +35,11 @@ class TestGoogleSearchFunction(unittest.TestCase):
         mock_client.search.return_value = mock_result
         mock_search_client.return_value = mock_client
 
-        # テスト実行
-        search_word = "テスト検索ワード"
+        # Test execution
+        search_word = "Test search word"
         result = GoogleSearchFunction.execute(search_word)
 
-        # 検証
+        # Verification
         mock_client.search.assert_called_once_with(search_word, gl="jp")
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]["title"], "テスト結果1")
@@ -51,31 +51,31 @@ class TestGoogleSearchFunction(unittest.TestCase):
 
     @patch("src.agent.function.google_search.GoogleSearchClient")
     def test_search_client(self, mock_client_class):
-        """search_client メソッドのテスト"""
-        # クラス変数をリセット
+        """Test for search_client method"""
+        # Reset class variable
         GoogleSearchFunction._search_client = None
 
         mock_instance = MagicMock()
         mock_client_class.return_value = mock_instance
 
-        # 1回目の呼び出し
+        # First call
         client1 = GoogleSearchFunction.search_client()
         mock_client_class.assert_called_once()
 
-        # 2回目の呼び出し（新しいインスタンスは作成されない）
+        # Second call (new instance is not created)
         client2 = GoogleSearchFunction.search_client()
-        mock_client_class.assert_called_once()  # 呼び出し回数は変わらない
+        mock_client_class.assert_called_once()  # Number of calls does not change
 
-        # 同じインスタンスが返されることを確認
+        # Check that the same instance is returned
         self.assertEqual(client1, client2)
 
     @patch("src.agent.function.google_search.StructuredTool.from_function")
     def test_to_tool(self, mock_from_function):
-        """to_tool メソッドのテスト"""
+        """Test for to_tool method"""
         mock_tool = MagicMock()
         mock_from_function.return_value = mock_tool
 
-        # function_nameをモック化して、エラーを回避
+        # Mock
         with patch.object(
             GoogleSearchFunction, "function_name", return_value="google_search_function"
         ):
@@ -83,7 +83,7 @@ class TestGoogleSearchFunction(unittest.TestCase):
 
         mock_from_function.assert_called_once_with(
             name="google_search_function",
-            description="指定されたキーワードでGoogle検索を実行し、結果を返します。",
+            description="Execute Google search with the specified keyword and return the result.",
             func=GoogleSearchFunction.execute,
             args_schema=GoogleSearchInput,
         )

@@ -1,7 +1,7 @@
 """
-GoogleSearchClientクラスの単体テストモジュール
+Unit test module for GoogleSearchClient class
 
-GoogleカスタムサーチAPIを利用するクライアントクラスのテストを行う
+Test for GoogleSearchClient class that uses Google Custom Search API
 """
 
 import unittest
@@ -11,145 +11,145 @@ from src.application.client.google_search_client import GoogleSearchClient
 
 
 class TestGoogleSearchClient(unittest.TestCase):
-    """GoogleSearchClientクラスのテストケース"""
+    """Test case for GoogleSearchClient class"""
 
     @patch("src.application.client.google_search_client.build")
     @patch("src.application.client.google_search_client.google_search_settings")
     def setUp(self, mock_settings, mock_build):
-        """テスト前の準備を行う"""
-        # 設定値のモック
+        """Setup before tests"""
+        # Mock settings
         mock_settings.GOOGLE_API_KEY = "test_api_key"
         mock_settings.CUSTOM_SEARCH_ENGINE_ID = "test_cx_id"
 
-        # buildのモック
+        # Mock build
         self.mock_service = MagicMock()
         mock_build.return_value = self.mock_service
 
-        # テスト対象のインスタンス作成
+        # Create test instance
         self.client = GoogleSearchClient()
 
-        # buildが正しく呼び出されていないことを確認（初期化時には呼び出されない）
+        # Check that build is not called (not called during initialization)
         mock_build.assert_not_called()
 
     @patch("src.application.client.google_search_client.build")
     @patch("src.application.client.google_search_client.google_search_settings")
     def test_get_service(self, mock_settings, mock_build):
-        """get_serviceメソッドのテスト"""
-        # 設定値のモック
+        """Test for get_service method"""
+        # Mock settings
         mock_settings.GOOGLE_API_KEY = "test_api_key"
         mock_settings.CUSTOM_SEARCH_ENGINE_ID = "test_cx_id"
 
-        # buildのモック
+        # Mock build
         mock_service = MagicMock()
         mock_build.return_value = mock_service
 
-        # テスト対象のインスタンス作成
+        # Create test instance
         client = GoogleSearchClient()
 
-        # get_serviceを呼び出し
+        # Call get_service
         service = client.get_service()
 
-        # buildが正しく呼び出されたことを確認
+        # Check that build is called
         mock_build.assert_called_once_with(
             "customsearch",
             "v1",
             developerKey="test_api_key",
         )
 
-        # 同じサービスが返されることを確認
+        # Check that the same service is returned
         self.assertEqual(service, mock_service)
 
-        # 2回目の呼び出しではbuildが呼ばれないことを確認
+        # Check that build is not called the second time
         service = client.get_service()
-        mock_build.assert_called_once()  # 呼び出し回数が変わらないことを確認
+        mock_build.assert_called_once()  # Check that the number of calls is the same
 
     @patch("src.application.client.google_search_client.build")
     @patch("src.application.client.google_search_client.google_search_settings")
     def test_search(self, mock_settings, mock_build):
-        """searchメソッドのテスト"""
-        # 設定値のモック
+        """Test for search method"""
+        # Mock settings
         mock_settings.GOOGLE_API_KEY = "test_api_key"
         mock_settings.CUSTOM_SEARCH_ENGINE_ID = "test_cx_id"
 
-        # モックの準備
+        # Mock build
         mock_cse = MagicMock()
         mock_list = MagicMock()
         mock_execute = MagicMock()
 
-        # 戻り値の設定
-        mock_execute.return_value = {"items": [{"title": "テスト結果"}]}
+        # Set return value
+        mock_execute.return_value = {"items": [{"title": "Test result"}]}
         mock_list.execute.return_value = mock_execute.return_value
         mock_cse.list.return_value = mock_list
         mock_service = MagicMock()
         mock_service.cse.return_value = mock_cse
         mock_build.return_value = mock_service
 
-        # テスト対象のインスタンス作成
+        # Create test instance
         client = GoogleSearchClient()
 
-        # 検索実行
-        result = client.search("テスト検索", num=5, start=2)
+        # Execute search
+        result = client.search("Test search", num=5, start=2)
 
-        # buildが正しく呼び出されたことを確認
+        # Check that build is called
         mock_build.assert_called_once_with(
             "customsearch",
             "v1",
             developerKey="test_api_key",
         )
 
-        # listメソッドが正しく呼び出されたことを確認
+        # Check that list method is called
         mock_cse.list.assert_called_once_with(
-            q="テスト検索",
+            q="Test search",
             cx="test_cx_id",
             lr="lang_ja",
             num=5,
             start=2,
         )
 
-        # executeが呼び出されたことを確認
+        # Check that execute method is called
         mock_list.execute.assert_called_once()
 
-        # 結果が正しいことを確認
-        self.assertEqual(result, {"items": [{"title": "テスト結果"}]})
+        # Check that the result is correct
+        self.assertEqual(result, {"items": [{"title": "Test result"}]})
 
     @patch("src.application.client.google_search_client.build")
     @patch("src.application.client.google_search_client.google_search_settings")
     def test_search_with_default_params(self, mock_settings, mock_build):
-        """デフォルトパラメータでのsearchメソッドのテスト"""
-        # 設定値のモック
+        """Test for search method with default parameters"""
+        # Mock settings
         mock_settings.GOOGLE_API_KEY = "test_api_key"
         mock_settings.CUSTOM_SEARCH_ENGINE_ID = "test_cx_id"
 
-        # モックの準備
+        # Mock build
         mock_cse = MagicMock()
         mock_list = MagicMock()
         mock_execute = MagicMock()
 
-        # 戻り値の設定
-        mock_execute.return_value = {"items": [{"title": "テスト結果"}]}
+        # Set return value
+        mock_execute.return_value = {"items": [{"title": "Test result"}]}
         mock_list.execute.return_value = mock_execute.return_value
         mock_cse.list.return_value = mock_list
         mock_service = MagicMock()
         mock_service.cse.return_value = mock_cse
         mock_build.return_value = mock_service
 
-        # テスト対象のインスタンス作成
+        # Create test instance
         client = GoogleSearchClient()
 
-        # デフォルトパラメータで検索実行
-        result = client.search("テスト検索")
+        # Execute search with default parameters
+        result = client.search("Test search")
 
-        # listメソッドが正しく呼び出されたことを確認（デフォルトパラメータ）
+        # Check that list method is called
         mock_cse.list.assert_called_once_with(
-            q="テスト検索",
+            q="Test search",
             cx="test_cx_id",
             lr="lang_ja",
-            num=10,  # デフォルト値
-            start=1,  # デフォルト値
+            num=10,  # Default value
+            start=1,  # Default value
         )
 
-        # 結果が正しいことを確認
-        self.assertEqual(result, {"items": [{"title": "テスト結果"}]})
+        # Check that the result is correct
+        self.assertEqual(result, {"items": [{"title": "Test result"}]})
 
 
 if __name__ == "__main__":

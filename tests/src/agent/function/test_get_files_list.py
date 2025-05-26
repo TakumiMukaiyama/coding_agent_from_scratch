@@ -1,5 +1,5 @@
 """
-GetFilesListFunctionの単体テスト
+Unit test for GetFilesListFunction
 """
 
 from unittest.mock import patch
@@ -14,8 +14,8 @@ class TestGetFilesListFunction:
     @patch("src.agent.function.get_files_list.glob.glob")
     @patch("src.agent.function.get_files_list.os.path.isfile")
     def test_execute(self, mock_isfile, mock_glob):
-        """execute メソッドのテスト"""
-        # モックの設定
+        """Test for execute method"""
+        # Set up mock
         mock_glob.side_effect = lambda pattern, recursive: {
             "**/*.py": ["config.py", "dir/settings.py"],
             "**/*.pyx": ["module.pyx"],
@@ -37,40 +37,40 @@ class TestGetFilesListFunction:
             "**/*.yaml": ["docker-compose.yaml"],
         }.get(pattern, [])
 
-        # 全てのファイルが実際のファイルとして扱われるようにする
+        # Make all files treated as actual files
         mock_isfile.return_value = True
 
-        # テスト実行
+        # Test execution
         result = GetFilesListFunction.execute()
 
-        # 検証
+        # Verification
         assert "files_list" in result
         assert isinstance(result["files_list"], list)
-        # デフォルトでは複数の言語のファイルが含まれることを確認
+        # Check that multiple language files are included by default
         assert len(result["files_list"]) > 0
 
     @patch("src.agent.function.get_files_list.glob.glob")
     @patch("src.agent.function.get_files_list.os.path.isfile")
     def test_execute_with_specific_extensions(self, mock_isfile, mock_glob):
-        """特定の拡張子でのテスト"""
-        # モックの設定
+        """Test for specific extensions"""
+        # Set up mock
         mock_glob.side_effect = lambda pattern, recursive: {
             "**/*.py": ["config.py", "dir/settings.py"],
         }.get(pattern, [])
 
         mock_isfile.return_value = True
 
-        # テスト実行
+        # Test execution
         result = GetFilesListFunction.execute(file_extensions=["py"])
 
-        # 検証
+        # Verification
         assert "files_list" in result
         assert len(result["files_list"]) == 2
         assert "config.py" in result["files_list"]
         assert "dir/settings.py" in result["files_list"]
 
     def test_get_extensions_for_language(self):
-        """言語別拡張子取得のテスト"""
+        """Test for getting extensions for language"""
         # Python
         python_extensions = GetFilesListFunction.get_extensions_for_language("python")
         assert "py" in python_extensions
@@ -81,12 +81,12 @@ class TestGetFilesListFunction:
         assert "ts" in ts_extensions
         assert "tsx" in ts_extensions
 
-        # 存在しない言語
+        # Unknown language
         unknown_extensions = GetFilesListFunction.get_extensions_for_language("unknown")
         assert unknown_extensions == []
 
     def test_get_all_supported_languages(self):
-        """サポート言語一覧取得のテスト"""
+        """Test for getting all supported languages"""
         languages = GetFilesListFunction.get_all_supported_languages()
         assert "python" in languages
         assert "javascript" in languages
@@ -95,11 +95,11 @@ class TestGetFilesListFunction:
 
     @patch("src.agent.function.get_files_list.StructuredTool.from_function")
     def test_to_tool(self, mock_from_function):
-        """to_tool メソッドのテスト"""
-        # モックの設定
+        """Test for to_tool method"""
+        # Set up mock
         mock_from_function.return_value = "mock_tool"
 
-        # テスト実行
+        # Test execution
         with patch.object(
             GetFilesListFunction,
             "function_name",
@@ -107,12 +107,12 @@ class TestGetFilesListFunction:
         ):
             result = GetFilesListFunction.to_tool()
 
-        # 検証 - 新しい説明文に合わせて更新
+        # Verification - Update to new description
         mock_from_function.assert_called_once()
         call_args = mock_from_function.call_args
         assert call_args[1]["name"] == "get_files_list_function"
         assert (
-            "プロジェクト配下のファイル一覧を取得します" in call_args[1]["description"]
+            "Get the list of files under the project" in call_args[1]["description"]
         )
         assert call_args[1]["func"] == GetFilesListFunction.execute
         assert call_args[1]["args_schema"] == GetFilesListInput

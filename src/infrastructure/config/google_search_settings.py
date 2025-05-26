@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class GoogleSearchSettings(BaseSettings):
+    """Settings for Google Search API"""
+
     GOOGLE_API_KEY: str
     CUSTOM_SEARCH_ENGINE_ID: str
 
