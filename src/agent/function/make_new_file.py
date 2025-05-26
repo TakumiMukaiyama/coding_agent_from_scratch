@@ -8,6 +8,7 @@ from src.agent.schema.make_new_file_input import MakeNewFileInput
 
 
 class MakeNewFileFunction(BaseFunction):
+    """Function to create a new file"""
     @staticmethod
     def execute(filepath: str, file_contents: str) -> Dict[str, str]:
         directory = os.path.dirname(filepath)

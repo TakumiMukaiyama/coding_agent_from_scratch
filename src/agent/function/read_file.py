@@ -1,12 +1,14 @@
 import os
 from typing import Dict, Type
+
 from langchain_core.tools import StructuredTool
 
-from src.application.function.base import BaseFunction
 from src.agent.schema.read_file_input import ReadFileInput
+from src.application.function.base import BaseFunction
 
 
 class ReadFileFunction(BaseFunction):
+    """Function to read a file"""
     @staticmethod
     def execute(filepath: str) -> Dict[str, str]:
         if os.path.exists(filepath):
@@ -26,7 +28,7 @@ class ReadFileFunction(BaseFunction):
     def to_tool(cls: Type["ReadFileFunction"]) -> StructuredTool:
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="指定されたファイルを読み取り、内容を返します。",
+            description="Reads the specified file and returns its contents.",
             func=cls.execute,
             args_schema=ReadFileInput,
         )

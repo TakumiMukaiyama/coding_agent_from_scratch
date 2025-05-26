@@ -1,56 +1,54 @@
 import subprocess
 
+from langchain_core.tools import StructuredTool
+
 from src.agent.schema.create_branch_input import CreateBranchInput
 from src.application.function.base import BaseFunction
-from langchain_core.tools import StructuredTool
 
 
 class CreateBranchFunction(BaseFunction):
-    """新しいGitブランチを作成するFunction"""
+    """Function to create a new Git branch"""
 
     @staticmethod
     def execute(branch_name: str) -> dict[str, str]:
-        """新しいGitブランチを作成する
+        """Create a new Git branch
 
         Args:
-            branch_name (str): 作成するブランチ名
+            branch_name (str): Name of the branch to create
 
         Returns:
-            Dict[str, str]: 実行結果
+            Dict[str, str]: Execution result
         """
         try:
-            # 現在のブランチを取得
+            # Get current branch
             current_branch = subprocess.check_output(
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"],
                 stderr=subprocess.STDOUT,
                 text=True,
             ).strip()
 
-            # すでにそのブランチが存在するか確認
+            # Check if the branch already exists
             all_branches_output = subprocess.check_output(
                 ["git", "branch"],
                 stderr=subprocess.STDOUT,
                 text=True,
             )
-            branch_list = [
-                line.strip().lstrip("* ").strip()
-                for line in all_branches_output.splitlines()
-            ]
+            branch_list = [line.strip().lstrip("* ").strip() for line in all_branches_output.splitlines()]
 
             if branch_name in branch_list:
-                # すでに存在する場合はチェックアウト
+                # If it already exists, checkout to it
                 subprocess.check_output(
                     ["git", "checkout", branch_name],
                     stderr=subprocess.STDOUT,
                 )
                 return {
                     "result": "success",
-                    "message": f"既存のブランチ '{branch_name}' に切り替えました",
+                    "message": f"Switched to existing branch '{branch_name}'",
                     "current_branch": branch_name,
                     "previous_branch": current_branch,
                 }
 
-            # 新しいブランチを作成
+            # Create new branch
             subprocess.check_output(
                 ["git", "checkout", "-b", branch_name],
                 stderr=subprocess.STDOUT,
@@ -58,7 +56,7 @@ class CreateBranchFunction(BaseFunction):
 
             return {
                 "result": "success",
-                "message": f"新しいブランチ '{branch_name}' を作成しました",
+                "message": f"Created new branch '{branch_name}'",
                 "current_branch": branch_name,
                 "previous_branch": current_branch,
             }
@@ -66,7 +64,7 @@ class CreateBranchFunction(BaseFunction):
         except subprocess.CalledProcessError as e:
             return {
                 "result": "error",
-                "message": f"ブランチ作成に失敗しました: {str(e)}",
+                "message": f"Failed to create branch: {str(e)}",
                 "error": e.output,
             }
 
@@ -74,7 +72,7 @@ class CreateBranchFunction(BaseFunction):
     def to_tool(cls: type["CreateBranchFunction"]) -> StructuredTool:
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="新しいGitブランチを作成します。既に存在する場合はそのブランチに切り替えます。",
+            description="Creates a new Git branch. If it already exists, switches to that branch.",
             func=cls.execute,
             args_schema=CreateBranchInput,
         )

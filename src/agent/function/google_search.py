@@ -7,7 +7,8 @@ from src.agent.schema.google_search_input import GoogleSearchInput
 
 
 class GoogleSearchFunction(BaseFunction):
-    _search_client: GoogleSearchClient = None  # クラス変数でキャッシュ管理
+    """Function to search Google"""
+    _search_client: GoogleSearchClient = None
 
     @classmethod
     def search_client(cls) -> GoogleSearchClient:
@@ -33,7 +34,7 @@ class GoogleSearchFunction(BaseFunction):
     def to_tool(cls: Type["GoogleSearchFunction"]) -> StructuredTool:
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="指定されたキーワードでGoogle検索を実行し、結果を返します。",
+            description="Search Google with the specified keyword and return the results.",
             func=cls.execute,
             args_schema=GoogleSearchInput,
         )

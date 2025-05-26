@@ -1,13 +1,14 @@
-from src.agent.schema.generate_pr_params_input import GeneratePRParamsInput
-from src.application.client.llm.azure_openai_client import AzureOpenAIClient
-from src.application.function.base import BaseFunction
 from langchain.schema import HumanMessage
 from langchain_core.prompts import PromptTemplate
 from langchain_core.tools import StructuredTool
 
+from src.agent.schema.generate_pr_params_input import GeneratePRParamsInput
+from src.application.client.llm.azure_openai_client import AzureOpenAIClient
+from src.application.function.base import BaseFunction
+
 
 class GeneratePullRequestParamsFunction(BaseFunction):
-    """PRのタイトルと説明を生成するFunction"""
+    """Function to generate PR title and description"""
 
     @staticmethod
     def execute(
@@ -15,42 +16,42 @@ class GeneratePullRequestParamsFunction(BaseFunction):
         programmer_output: str,
         diff: str = "",
     ) -> dict[str, str]:
-        """PRのタイトルと説明を生成する
+        """Generate PR title and description
 
         Args:
-            instruction (str): プログラマーへの指示内容
-            programmer_output (str): プログラマーの出力
-            diff (str, optional): コードの差分. デフォルトは空文字.
+            instruction (str): Instructions to the programmer
+            programmer_output (str): Output from the programmer
+            diff (str, optional): Code diff. Defaults to empty string.
 
         Returns:
-            Dict[str, str]: PRタイトルと説明
+            Dict[str, str]: PR title and description
         """
         try:
-            # LLMクライアントの初期化
+            # Initialize LLM client
             llm_client = AzureOpenAIClient()
             chat_llm = llm_client.initialize_chat()
 
-            # PRタイトルの生成
+            # Generate PR title
             title_prompt = PromptTemplate.from_template(
                 """
-あなたはプルリクエストのタイトル作成の専門家です。
-以下の指示内容から、適切なプルリクエストのタイトルを生成してください。
+You are an expert in creating pull request titles.
+Please generate an appropriate pull request title from the following instruction content.
 
-タイトルのルール:
-1. 簡潔で明確に変更内容を表現する
-2. 英語で記述する
-3. 先頭に適切な接頭語を付ける（例: feat:, fix:, refactor:, docs:, chore:, test:）
-4. 最大80文字以内にする
-5. 命令形で書く（例: "Add user authentication"）
+Title rules:
+1. Express the changes concisely and clearly
+2. Write in English
+3. Add appropriate prefix at the beginning (e.g., feat:, fix:, refactor:, docs:, chore:, test:)
+4. Keep within 80 characters
+5. Write in imperative form (e.g., "Add user authentication")
 
-プログラマーへの指示:
+Instructions to programmer:
 {instruction}
 
-プログラマーの出力:
+Programmer output:
 {programmer_output}
 
-出力する形式:
-タイトルのみを出力してください。説明や前後のテキストは不要です。
+Output format:
+Output only the title. No explanation or surrounding text is needed.
                 """,
             )
 
@@ -58,40 +59,38 @@ class GeneratePullRequestParamsFunction(BaseFunction):
                 HumanMessage(
                     content=title_prompt.format(
                         instruction=instruction,
-                        programmer_output=programmer_output[:500]
-                        if programmer_output
-                        else "出力なし",
+                        programmer_output=programmer_output[:500] if programmer_output else "No output",
                     )
                 )
             ]
             title_result = chat_llm.invoke(title_message)
             pr_title = title_result.content.strip()
 
-            # PR説明文の生成
+            # Generate PR description
             description_prompt = PromptTemplate.from_template(
                 """
-あなたはプルリクエストの説明文作成の専門家です。
-以下の情報から、詳細で分かりやすいプルリクエストの説明文を生成してください。
+You are an expert in creating pull request descriptions.
+Please generate a detailed and understandable pull request description from the following information.
 
-説明文のルール:
-1. マークダウン形式で記述する
-2. 以下のセクションを含める:
-   - 概要: 変更内容の簡潔な説明
-   - 詳細: 実装方法や特筆すべき点
-   - テスト方法: 変更の検証方法（あれば）
-3. 簡潔かつ詳細に記述する
+Description rules:
+1. Write in markdown format
+2. Include the following sections:
+   - Overview: Brief description of changes
+   - Details: Implementation methods and notable points
+   - Testing: How to verify changes (if applicable)
+3. Write concisely yet detailed
 
-プログラマーへの指示:
+Instructions to programmer:
 {instruction}
 
-プログラマーの出力:
+Programmer output:
 {programmer_output}
 
-コードの差分:
+Code diff:
 {diff}
 
-出力する形式:
-マークダウン形式の説明文を出力してください。
+Output format:
+Output the description in markdown format.
                 """,
             )
 
@@ -99,10 +98,8 @@ class GeneratePullRequestParamsFunction(BaseFunction):
                 HumanMessage(
                     content=description_prompt.format(
                         instruction=instruction,
-                        programmer_output=programmer_output[:500]
-                        if programmer_output
-                        else "出力なし",
-                        diff=diff[:1000] if diff else "差分なし",
+                        programmer_output=programmer_output[:500] if programmer_output else "No output",
+                        diff=diff[:1000] if diff else "No diff",
                     )
                 )
             ]
@@ -118,7 +115,7 @@ class GeneratePullRequestParamsFunction(BaseFunction):
         except Exception as e:
             return {
                 "result": "error",
-                "message": f"PRパラメータ生成に失敗しました: {str(e)}",
+                "message": f"Failed to generate PR parameters: {str(e)}",
                 "error": str(e),
             }
 
@@ -126,7 +123,7 @@ class GeneratePullRequestParamsFunction(BaseFunction):
     def to_tool(cls: type["GeneratePullRequestParamsFunction"]) -> StructuredTool:
         return StructuredTool.from_function(
             name=cls.function_name(),
-            description="プルリクエストのタイトルと説明文を生成します。",
+            description="Generates pull request title and description.",
             func=cls.execute,
             args_schema=GeneratePRParamsInput,
         )
