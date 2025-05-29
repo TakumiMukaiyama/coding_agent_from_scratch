@@ -7,6 +7,7 @@ from langchain_core.prompts import (
 )
 from langchain_core.tools import BaseTool
 
+from src.agent.function.exec_pytest_test import ExecPytestTestFunction
 from src.agent.function.record_lgtm import RecordLgtmFunction
 from src.agent.function.review_code_function import ReviewCodeFunction
 from src.agent.schema.reviewer_input import ReviewerInput
@@ -33,15 +34,14 @@ class ReviewerAgent:
     def _initialize_tools(self) -> list[BaseTool]:
         return [
             ReviewCodeFunction.to_tool(),
+            ExecPytestTestFunction.to_tool(),
             RecordLgtmFunction.to_tool(),
         ]
 
     def _initialize_executor(self) -> AgentExecutor:
         prompt = ChatPromptTemplate.from_messages(
             [
-                SystemMessage(
-                    content=REVIEWER_AGENT_SYSTEM_MESSAGE
-                ),
+                SystemMessage(content=REVIEWER_AGENT_SYSTEM_MESSAGE),
                 MessagesPlaceholder(variable_name="chat_history", optional=True),
                 HumanMessagePromptTemplate.from_template("{input}"),
                 MessagesPlaceholder(variable_name="agent_scratchpad"),
@@ -69,8 +69,9 @@ class ReviewerAgent:
         RecordLgtmFunction.reset_lgtm()
         input_text = f"""
             Please perform a code review.
-            Review in detail from the perspectives of code quality, security, and best practices,
-            and point out specific issues or improvements if any.
+            - Always execute unit tests using the pytest tool. If there are no tests, write appropriate pytest-based unit tests and execute them.
+            - Write unit tests for each method (function) in the code, using pytest format. Ensure that every method is covered by at least one test case.
+            - Review in detail from the perspectives of code quality, security, and best practices, and point out specific issues or improvements if any.
             
             After review completion:
             - If the code has no issues and can be approved: Please call the record_lgtm_function tool
