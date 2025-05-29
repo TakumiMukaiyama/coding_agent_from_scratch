@@ -25,7 +25,7 @@ from src.application.chain.pydantic_chain import PydanticChain
 from src.application.client.llm.azure_openai_client import AzureOpenAIClient
 from src.application.dependency.chaindependency import ChainDependency
 from src.infrastructure.config.prompt import (
-    AGENT_SYSTEM_MESSAGE,
+    PROGRAMMER_AGENT_SYSTEM_MESSAGE,
     PROGRAMMER_PROMPT_TEMPLATE,
     get_language_config,
 )
@@ -70,7 +70,7 @@ class ProgrammerAgent:
 
     def _initialize_executor(self, project_root: str) -> AgentExecutor:
         # Generate system message according to project root
-        system_message = AGENT_SYSTEM_MESSAGE.format(project_root=project_root)
+        system_message = PROGRAMMER_AGENT_SYSTEM_MESSAGE.format(project_root=project_root)
 
         prompt = ChatPromptTemplate.from_messages(
             [

@@ -12,6 +12,7 @@ from src.agent.function.review_code_function import ReviewCodeFunction
 from src.agent.schema.reviewer_input import ReviewerInput
 from src.agent.schema.reviewer_output import ReviewerOutput
 from src.application.client.llm.azure_openai_client import AzureOpenAIClient
+from src.infrastructure.config.prompt import REVIEWER_AGENT_SYSTEM_MESSAGE
 from src.infrastructure.utils.logger import get_logger
 
 
@@ -39,17 +40,7 @@ class ReviewerAgent:
         prompt = ChatPromptTemplate.from_messages(
             [
                 SystemMessage(
-                    content="""You are a professional reviewer.
-Please carefully examine the code diff and point out any issues or improvements.
-Please review from the following perspectives:
-- Code quality (readability, maintainability, performance)
-- Security issues
-- Best practice compliance
-- Potential bugs
-- Design issues
-
-Important: If the review result shows no issues and the code can be approved, you must call the record_lgtm_function tool to record LGTM (Looks Good To Me).
-If there are issues, please point out specific improvements.""",
+                    content=REVIEWER_AGENT_SYSTEM_MESSAGE
                 ),
                 MessagesPlaceholder(variable_name="chat_history", optional=True),
                 HumanMessagePromptTemplate.from_template("{input}"),
@@ -63,9 +54,7 @@ If there are issues, please point out specific improvements.""",
             tools=self.tools,
             prompt=prompt,
         )
-        return AgentExecutor(
-            agent=agent, tools=self.tools, max_iterations=30, verbose=True
-        )
+        return AgentExecutor(agent=agent, tools=self.tools, max_iterations=30, verbose=True)
 
     def run(self, reviewer_input: ReviewerInput) -> ReviewerOutput:
         """Execute code review.
@@ -92,9 +81,7 @@ If there are issues, please point out specific improvements.""",
             
             """
         if reviewer_input.programmer_comment:
-            input_text += (
-                f"\n\nComment from programmer:\n{reviewer_input.programmer_comment}"
-            )
+            input_text += f"\n\nComment from programmer:\n{reviewer_input.programmer_comment}"
 
         agent_result = self.agent_executor.invoke({"input": input_text})
         output_text = agent_result["output"]
