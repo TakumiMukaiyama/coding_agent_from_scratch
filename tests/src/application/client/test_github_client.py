@@ -404,7 +404,7 @@ class TestGitHubClient(unittest.TestCase):
         self.assertEqual(contents, [mock_content])  # Check that list is returned
         mock_get_repository.assert_called_once_with(self.repo_full_name)
         mock_repo.get_contents.assert_called_once_with(path, ref=None)
-
+    
 
 if __name__ == "__main__":
     unittest.main()
